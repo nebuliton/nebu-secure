@@ -9,7 +9,7 @@ COPY . .
 RUN npm ci
 RUN SKIP_WAYFINDER=1 npm run build
 
-FROM php:8.3-fpm-alpine AS runtime
+FROM php:8.4-fpm-alpine AS runtime
 WORKDIR /var/www/html
 RUN apk add --no-cache nginx supervisor icu-dev oniguruma-dev libzip-dev sqlite-dev postgresql-dev linux-headers
 RUN docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring bcmath pcntl exif
