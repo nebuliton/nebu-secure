@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
@@ -48,6 +48,23 @@ export default function MyVaultPage() {
 
     const list = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
 
+    const tagColorClass = (tag: string) => {
+        const palette = [
+            'bg-red-100 text-red-800 border-red-200',
+            'bg-orange-100 text-orange-800 border-orange-200',
+            'bg-amber-100 text-amber-800 border-amber-200',
+            'bg-lime-100 text-lime-800 border-lime-200',
+            'bg-emerald-100 text-emerald-800 border-emerald-200',
+            'bg-cyan-100 text-cyan-800 border-cyan-200',
+            'bg-blue-100 text-blue-800 border-blue-200',
+            'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'bg-pink-100 text-pink-800 border-pink-200',
+        ];
+
+        const hash = tag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return palette[hash % palette.length];
+    };
+
     const copyText = async (value: string, label: string) => {
         await navigator.clipboard.writeText(value);
         toast.success(`${label} kopiert`);
@@ -87,7 +104,7 @@ export default function MyVaultPage() {
                                                 </div>
                                                 <div className="flex gap-1">
                                                     {(item.tags_json ?? []).map((itemTag) => (
-                                                        <Badge key={itemTag} variant="secondary">{itemTag}</Badge>
+                                                        <Badge key={itemTag} className={tagColorClass(itemTag)} variant="outline">{itemTag}</Badge>
                                                     ))}
                                                 </div>
                                             </div>
@@ -96,11 +113,15 @@ export default function MyVaultPage() {
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>{item.title}</DialogTitle>
+                                            <DialogDescription>
+                                                Zugangsdaten für diesen Tresor-Eintrag anzeigen und teilen.
+                                            </DialogDescription>
                                         </DialogHeader>
                                         <div className="space-y-3 text-sm">
                                             <p><span className="font-medium">Benutzername:</span> {item.username ?? '-'}</p>
                                             <p><span className="font-medium">Server-IP:</span> {item.server_ip ?? '-'}</p>
                                             <p><span className="font-medium">URL:</span> {item.url ?? '-'}</p>
+                                            <p><span className="font-medium">Gruppen:</span> {((item.groups ?? []).map((group) => group.name).join(', ')) || item.assigned_group?.name || '-'}</p>
                                             <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                                 <p className="mb-2 font-medium">Passwort</p>
                                                 <div className="flex items-center gap-2">

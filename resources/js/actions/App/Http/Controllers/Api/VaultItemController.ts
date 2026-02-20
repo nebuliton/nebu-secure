@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
 export const show = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
 show.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -127,7 +127,7 @@ show.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | 
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
 show.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -136,7 +136,7 @@ show.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | 
 })
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
 show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -146,7 +146,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
 
     /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
     const showForm = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -156,7 +156,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
 
             /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
         showForm.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -165,7 +165,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
         })
             /**
 * @see \App\Http\Controllers\Api\VaultItemController::show
- * @see app/Http/Controllers/Api/VaultItemController.php:63
+ * @see app/Http/Controllers/Api/VaultItemController.php:71
  * @route '/api/vault-items/{vaultItem}'
  */
         showForm.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -181,7 +181,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::reveal
- * @see app/Http/Controllers/Api/VaultItemController.php:70
+ * @see app/Http/Controllers/Api/VaultItemController.php:78
  * @route '/api/vault-items/{vaultItem}/reveal'
  */
 export const reveal = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -196,7 +196,7 @@ reveal.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::reveal
- * @see app/Http/Controllers/Api/VaultItemController.php:70
+ * @see app/Http/Controllers/Api/VaultItemController.php:78
  * @route '/api/vault-items/{vaultItem}/reveal'
  */
 reveal.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -229,7 +229,7 @@ reveal.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number 
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemController::reveal
- * @see app/Http/Controllers/Api/VaultItemController.php:70
+ * @see app/Http/Controllers/Api/VaultItemController.php:78
  * @route '/api/vault-items/{vaultItem}/reveal'
  */
 reveal.post = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -239,7 +239,7 @@ reveal.post = (args: { vaultItem: number | { id: number } } | [vaultItem: number
 
     /**
 * @see \App\Http\Controllers\Api\VaultItemController::reveal
- * @see app/Http/Controllers/Api/VaultItemController.php:70
+ * @see app/Http/Controllers/Api/VaultItemController.php:78
  * @route '/api/vault-items/{vaultItem}/reveal'
  */
     const revealForm = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -249,7 +249,7 @@ reveal.post = (args: { vaultItem: number | { id: number } } | [vaultItem: number
 
             /**
 * @see \App\Http\Controllers\Api\VaultItemController::reveal
- * @see app/Http/Controllers/Api/VaultItemController.php:70
+ * @see app/Http/Controllers/Api/VaultItemController.php:78
  * @route '/api/vault-items/{vaultItem}/reveal'
  */
         revealForm.post = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

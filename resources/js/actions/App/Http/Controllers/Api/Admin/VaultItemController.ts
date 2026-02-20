@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 export const show = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -149,7 +149,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 show.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -182,7 +182,7 @@ show.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | 
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 show.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -191,7 +191,7 @@ show.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | 
 })
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -201,7 +201,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
 
     /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
     const showForm = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -211,7 +211,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
 
             /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
         showForm.get = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -220,7 +220,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
         })
             /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::show
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:61
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:75
  * @route '/api/admin/vault-items/{vaultItem}'
  */
         showForm.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -236,7 +236,7 @@ show.head = (args: { vaultItem: number | { id: number } } | [vaultItem: number |
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 export const update = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -251,7 +251,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 update.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -284,7 +284,7 @@ update.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number 
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 update.put = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -293,7 +293,7 @@ update.put = (args: { vaultItem: number | { id: number } } | [vaultItem: number 
 })
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 update.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -303,7 +303,7 @@ update.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: numbe
 
     /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
     const updateForm = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -318,7 +318,7 @@ update.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: numbe
 
             /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
         updateForm.put = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -332,7 +332,7 @@ update.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: numbe
         })
             /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::update
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:68
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:82
  * @route '/api/admin/vault-items/{vaultItem}'
  */
         updateForm.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -348,7 +348,7 @@ update.patch = (args: { vaultItem: number | { id: number } } | [vaultItem: numbe
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::destroy
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:105
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:132
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 export const destroy = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -363,7 +363,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::destroy
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:105
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:132
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 destroy.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -396,7 +396,7 @@ destroy.url = (args: { vaultItem: number | { id: number } } | [vaultItem: number
 
 /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::destroy
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:105
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:132
  * @route '/api/admin/vault-items/{vaultItem}'
  */
 destroy.delete = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -406,7 +406,7 @@ destroy.delete = (args: { vaultItem: number | { id: number } } | [vaultItem: num
 
     /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::destroy
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:105
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:132
  * @route '/api/admin/vault-items/{vaultItem}'
  */
     const destroyForm = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -421,7 +421,7 @@ destroy.delete = (args: { vaultItem: number | { id: number } } | [vaultItem: num
 
             /**
 * @see \App\Http\Controllers\Api\Admin\VaultItemController::destroy
- * @see app/Http/Controllers/Api/Admin/VaultItemController.php:105
+ * @see app/Http/Controllers/Api/Admin/VaultItemController.php:132
  * @route '/api/admin/vault-items/{vaultItem}'
  */
         destroyForm.delete = (args: { vaultItem: number | { id: number } } | [vaultItem: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

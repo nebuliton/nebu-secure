@@ -21,6 +21,7 @@ export type VaultItem = {
     tags_json: string[] | null;
     assigned_user_id: number | null;
     assigned_group_id: number | null;
+    groups?: Group[];
     assigned_user?: VaultUser | null;
     assigned_group?: Group | null;
     created_at: string;

@@ -24,7 +24,7 @@ class VaultItemController extends Controller
         $this->authorize('viewAny', VaultItem::class);
 
         $items = VaultItem::query()
-            ->with(['assignedUser:id,name,email', 'assignedGroup:id,name'])
+            ->with(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name'])
             ->latest()
             ->get();
 
@@ -40,6 +40,18 @@ class VaultItemController extends Controller
             $request->input('notes'),
         );
 
+        $groupIds = collect($request->input('group_ids', []))
+            ->filter(static fn ($value): bool => $value !== null && $value !== '')
+            ->map(static fn ($value): int => (int) $value)
+            ->unique()
+            ->values();
+        $fallbackGroupId = $request->input('assigned_group_id');
+        $primaryGroupId = $fallbackGroupId !== null ? (int) $fallbackGroupId : $groupIds->first();
+
+        if ($primaryGroupId !== null && !$groupIds->contains($primaryGroupId)) {
+            $groupIds->push($primaryGroupId);
+        }
+
         $item = VaultItem::query()->create([
             'title' => $request->string('title')->value(),
             'username' => $request->input('username'),
@@ -47,27 +59,41 @@ class VaultItemController extends Controller
             'url' => $request->input('url'),
             'tags_json' => $request->input('tags'),
             'assigned_user_id' => $request->input('assigned_user_id'),
-            'assigned_group_id' => $request->input('assigned_group_id'),
+            'assigned_group_id' => $primaryGroupId,
             'created_by_admin_id' => $request->user()->id,
             'updated_by_admin_id' => $request->user()->id,
             ...$encrypted,
         ]);
 
+        $item->groups()->sync($groupIds->all());
+
         $this->auditLogService->record('item_created', 'vault_item', $item->id, ['title' => $item->title], $request->user()?->id, $request);
 
-        return response()->json($item->load(['assignedUser:id,name,email', 'assignedGroup:id,name']), 201);
+        return response()->json($item->load(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name']), 201);
     }
 
     public function show(VaultItem $vaultItem): JsonResponse
     {
         $this->authorize('view', $vaultItem);
 
-        return response()->json($vaultItem->load(['assignedUser:id,name,email', 'assignedGroup:id,name']));
+        return response()->json($vaultItem->load(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name']));
     }
 
     public function update(UpdateVaultItemRequest $request, VaultItem $vaultItem): JsonResponse
     {
         $this->authorize('update', $vaultItem);
+
+        $groupIds = collect($request->input('group_ids', []))
+            ->filter(static fn ($value): bool => $value !== null && $value !== '')
+            ->map(static fn ($value): int => (int) $value)
+            ->unique()
+            ->values();
+        $fallbackGroupId = $request->input('assigned_group_id');
+        $primaryGroupId = $fallbackGroupId !== null ? (int) $fallbackGroupId : $groupIds->first();
+
+        if ($primaryGroupId !== null && !$groupIds->contains($primaryGroupId)) {
+            $groupIds->push($primaryGroupId);
+        }
 
         $payload = [
             'title' => $request->string('title')->value(),
@@ -76,7 +102,7 @@ class VaultItemController extends Controller
             'url' => $request->input('url'),
             'tags_json' => $request->input('tags'),
             'assigned_user_id' => $request->input('assigned_user_id'),
-            'assigned_group_id' => $request->input('assigned_group_id'),
+            'assigned_group_id' => $primaryGroupId,
             'updated_by_admin_id' => $request->user()->id,
         ];
 
@@ -96,10 +122,11 @@ class VaultItemController extends Controller
         }
 
         $vaultItem->update($payload);
+        $vaultItem->groups()->sync($groupIds->all());
 
         $this->auditLogService->record('item_updated', 'vault_item', $vaultItem->id, ['title' => $vaultItem->title], $request->user()?->id, $request);
 
-        return response()->json($vaultItem->refresh()->load(['assignedUser:id,name,email', 'assignedGroup:id,name']));
+        return response()->json($vaultItem->refresh()->load(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name']));
     }
 
     public function destroy(Request $request, VaultItem $vaultItem): JsonResponse

@@ -22,6 +22,8 @@ class UpdateVaultItemRequest extends FormRequest
             'tags.*' => ['string', 'max:60'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'assigned_group_id' => ['nullable', 'integer', 'exists:groups,id'],
+            'group_ids' => ['nullable', 'array'],
+            'group_ids.*' => ['integer', 'exists:groups,id'],
             'password' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'clear_notes' => ['sometimes', 'boolean'],
@@ -31,7 +33,7 @@ class UpdateVaultItemRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator): void {
-            if (blank($this->input('assigned_user_id')) && blank($this->input('assigned_group_id'))) {
+            if (blank($this->input('assigned_user_id')) && blank($this->input('assigned_group_id')) && blank($this->input('group_ids'))) {
                 $validator->errors()->add('assignment', 'Bitte mindestens User oder Gruppe zuweisen.');
             }
         }];

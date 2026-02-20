@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VaultItem extends Model
@@ -57,6 +58,11 @@ class VaultItem extends Model
     public function assignedGroup(): BelongsTo
     {
         return $this->belongsTo(Group::class, 'assigned_group_id');
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_vault_item');
     }
 
     public function createdByAdmin(): BelongsTo

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -27,7 +27,7 @@ type ItemForm = {
     url: string;
     tags: string;
     assigned_user_id: string;
-    assigned_group_id: string;
+    assigned_group_ids: string[];
     password: string;
     notes: string;
 };
@@ -39,7 +39,7 @@ const defaultForm: ItemForm = {
     url: '',
     tags: '',
     assigned_user_id: '',
-    assigned_group_id: '',
+    assigned_group_ids: [],
     password: '',
     notes: '',
 };
@@ -65,9 +65,26 @@ export default function AdminVaultItemsPage() {
         [itemsQuery.data, search],
     );
 
+    const tagColorClass = (tag: string) => {
+        const palette = [
+            'bg-red-100 text-red-800 border-red-200',
+            'bg-orange-100 text-orange-800 border-orange-200',
+            'bg-amber-100 text-amber-800 border-amber-200',
+            'bg-lime-100 text-lime-800 border-lime-200',
+            'bg-emerald-100 text-emerald-800 border-emerald-200',
+            'bg-cyan-100 text-cyan-800 border-cyan-200',
+            'bg-blue-100 text-blue-800 border-blue-200',
+            'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'bg-pink-100 text-pink-800 border-pink-200',
+        ];
+
+        const hash = tag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return palette[hash % palette.length];
+    };
+
     const saveMutation = useMutation({
         mutationFn: async () => {
-            if (!form.assigned_user_id && !form.assigned_group_id) {
+            if (!form.assigned_user_id && form.assigned_group_ids.length === 0) {
                 throw new Error('Bitte mindestens User oder Gruppe zuweisen.');
             }
 
@@ -78,7 +95,7 @@ export default function AdminVaultItemsPage() {
                 url: form.url || null,
                 tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
                 assigned_user_id: form.assigned_user_id ? Number(form.assigned_user_id) : null,
-                assigned_group_id: form.assigned_group_id ? Number(form.assigned_group_id) : null,
+                group_ids: form.assigned_group_ids.map((groupId) => Number(groupId)),
                 password: form.password || undefined,
                 notes: form.notes || null,
             };
@@ -143,7 +160,9 @@ export default function AdminVaultItemsPage() {
             url: item.url ?? '',
             tags: (item.tags_json ?? []).join(', '),
             assigned_user_id: item.assigned_user_id ? String(item.assigned_user_id) : '',
-            assigned_group_id: item.assigned_group_id ? String(item.assigned_group_id) : '',
+            assigned_group_ids: (item.groups ?? []).map((group) => String(group.id)).length > 0
+                ? (item.groups ?? []).map((group) => String(group.id))
+                : (item.assigned_group_id ? [String(item.assigned_group_id)] : []),
             password: '',
             notes: '',
         });
@@ -169,6 +188,9 @@ export default function AdminVaultItemsPage() {
                                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                         <DialogTitle>{editingItem ? 'Tresor-Eintrag bearbeiten' : 'Tresor-Eintrag erstellen'}</DialogTitle>
+                                        <DialogDescription>
+                                            Tresor-Eintrag mit Zugangsdaten, Gruppen und Tags verwalten.
+                                        </DialogDescription>
                                     </DialogHeader>
                                     <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(); }}>
                                         <div className="space-y-2"><Label>Titel</Label><Input required value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} /></div>
@@ -184,11 +206,25 @@ export default function AdminVaultItemsPage() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Zugewiesene Gruppe</Label>
-                                            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.assigned_group_id} onChange={(event) => setForm((prev) => ({ ...prev, assigned_group_id: event.target.value }))}>
-                                                <option value="">Keine</option>
-                                                {(groupsQuery.data ?? []).map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-                                            </select>
+                                            <Label>Zugewiesene Gruppen (mehrfach)</Label>
+                                            <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border border-input bg-background p-3">
+                                                {(groupsQuery.data ?? []).map((group) => (
+                                                    <label key={group.id} className="flex items-center justify-between gap-2 text-sm">
+                                                        <span>{group.name}</span>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={form.assigned_group_ids.includes(String(group.id))}
+                                                            onChange={(event) => {
+                                                                if (event.target.checked) {
+                                                                    setForm((prev) => ({ ...prev, assigned_group_ids: [...prev.assigned_group_ids, String(group.id)] }));
+                                                                } else {
+                                                                    setForm((prev) => ({ ...prev, assigned_group_ids: prev.assigned_group_ids.filter((id) => id !== String(group.id)) }));
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                ))}
+                                            </div>
                                         </div>
                                         <div className="space-y-2"><Label>{editingItem ? 'Neues Passwort (optional)' : 'Passwort'}</Label><Input type="password" required={!editingItem} value={form.password} onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Notizen</Label><textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} /></div>
@@ -217,8 +253,22 @@ export default function AdminVaultItemsPage() {
                                             <td className="px-4 py-3">{item.title}</td>
                                             <td className="px-4 py-3">{item.username ?? '-'}</td>
                                             <td className="px-4 py-3">{item.server_ip ?? '-'}</td>
-                                            <td className="px-4 py-3">{(item.tags_json ?? []).join(', ') || '-'}</td>
-                                            <td className="px-4 py-3">{item.assigned_user?.name ?? '-'} / {item.assigned_group?.name ?? '-'}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(item.tags_json ?? []).map((itemTag) => (
+                                                        <Badge key={itemTag} className={tagColorClass(itemTag)} variant="outline">{itemTag}</Badge>
+                                                    ))}
+                                                    {(item.tags_json ?? []).length === 0 && '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <span>{item.assigned_user?.name ?? '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {((item.groups ?? []).map((group) => group.name).join(', ')) || item.assigned_group?.name || '-'}
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td className="flex gap-2 px-4 py-3">
                                                 <Button
                                                     size="sm"
@@ -248,6 +298,9 @@ export default function AdminVaultItemsPage() {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>{detailItem?.title ?? 'Eintrag'}</DialogTitle>
+                            <DialogDescription>
+                                Details und Geheimdaten dieses Tresor-Eintrags ansehen.
+                            </DialogDescription>
                         </DialogHeader>
                         {detailItem && (
                             <div className="space-y-3 text-sm">
@@ -256,9 +309,10 @@ export default function AdminVaultItemsPage() {
                                 <p><span className="font-medium">URL:</span> {detailItem.url ?? '-'}</p>
                                 <div className="flex gap-1">
                                     {(detailItem.tags_json ?? []).map((itemTag) => (
-                                        <Badge key={itemTag} variant="secondary">{itemTag}</Badge>
+                                        <Badge key={itemTag} className={tagColorClass(itemTag)} variant="outline">{itemTag}</Badge>
                                     ))}
                                 </div>
+                                <p><span className="font-medium">Gruppen:</span> {((detailItem.groups ?? []).map((group) => group.name).join(', ')) || detailItem.assigned_group?.name || '-'}</p>
                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                     <p className="mb-2 font-medium">Passwort</p>
                                     <div className="flex items-center gap-2">

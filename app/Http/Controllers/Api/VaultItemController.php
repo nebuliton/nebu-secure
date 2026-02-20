@@ -26,10 +26,13 @@ class VaultItemController extends Controller
         $groupIds = $user->groups()->pluck('groups.id');
 
         $query = VaultItem::query()
-            ->with(['assignedUser:id,name,email', 'assignedGroup:id,name'])
+            ->with(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name'])
             ->where(function ($builder) use ($user, $groupIds): void {
                 $builder->where('assigned_user_id', $user->id)
-                    ->orWhereIn('assigned_group_id', $groupIds);
+                    ->orWhereIn('assigned_group_id', $groupIds)
+                    ->orWhereHas('groups', function ($groupQuery) use ($groupIds): void {
+                        $groupQuery->whereIn('groups.id', $groupIds);
+                    });
             });
 
         $scope = $request->input('scope', 'all');
@@ -39,7 +42,12 @@ class VaultItemController extends Controller
         }
 
         if ($scope === 'group') {
-            $query->whereIn('assigned_group_id', $groupIds);
+            $query->where(function ($builder) use ($groupIds): void {
+                $builder->whereIn('assigned_group_id', $groupIds)
+                    ->orWhereHas('groups', function ($groupQuery) use ($groupIds): void {
+                        $groupQuery->whereIn('groups.id', $groupIds);
+                    });
+            });
         }
 
         if ($request->filled('search')) {
@@ -64,7 +72,7 @@ class VaultItemController extends Controller
     {
         $this->authorize('view', $vaultItem);
 
-        return response()->json($vaultItem->load(['assignedUser:id,name,email', 'assignedGroup:id,name']));
+        return response()->json($vaultItem->load(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name']));
     }
 
     public function reveal(Request $request, VaultItem $vaultItem): JsonResponse

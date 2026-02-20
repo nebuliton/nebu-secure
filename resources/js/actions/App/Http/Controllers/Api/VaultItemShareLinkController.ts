@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
 export const consume = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ consume.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
 consume.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ consume.url = (args: { token: string | number } | [token: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
 consume.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ consume.get = (args: { token: string | number } | [token: string | number ] | st
 })
 /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
 consume.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ consume.head = (args: { token: string | number } | [token: string | number ] | s
 
     /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
     const consumeForm = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ consume.head = (args: { token: string | number } | [token: string | number ] | s
 
             /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
         consumeForm.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ consume.head = (args: { token: string | number } | [token: string | number ] | s
         })
             /**
 * @see \App\Http\Controllers\Api\VaultItemShareLinkController::consume
- * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:44
+ * @see app/Http/Controllers/Api/VaultItemShareLinkController.php:45
  * @route '/api/share-links/{token}'
  */
         consumeForm.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

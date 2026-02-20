@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -88,6 +88,9 @@ export default function AdminGroupsPage() {
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>{editingGroup ? 'Gruppe bearbeiten' : 'Gruppe erstellen'}</DialogTitle>
+                                    <DialogDescription>
+                                        Gruppe anlegen oder Mitglieder einer Gruppe bearbeiten.
+                                    </DialogDescription>
                                 </DialogHeader>
                                 <form
                                     className="space-y-4"

@@ -22,11 +22,17 @@ class VaultItemPolicy
             return true;
         }
 
-        if ($vaultItem->assigned_group_id === null) {
+        $userGroupIds = $user->groups()->pluck('groups.id');
+
+        if ($userGroupIds->isEmpty()) {
             return false;
         }
 
-        return $user->groups()->where('groups.id', $vaultItem->assigned_group_id)->exists();
+        if ($vaultItem->assigned_group_id !== null && $userGroupIds->contains($vaultItem->assigned_group_id)) {
+            return true;
+        }
+
+        return $vaultItem->groups()->whereIn('groups.id', $userGroupIds)->exists();
     }
 
     public function create(User $user): bool
