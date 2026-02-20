@@ -1,5 +1,11 @@
 <?php
 
+$maintenanceDriver = env('APP_MAINTENANCE_DRIVER', 'file');
+
+if (! in_array($maintenanceDriver, ['file', 'cache'], true)) {
+    $maintenanceDriver = 'file';
+}
+
 return [
 
     /*
@@ -119,7 +125,7 @@ return [
     */
 
     'maintenance' => [
-        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
+        'driver' => $maintenanceDriver,
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
