@@ -7,7 +7,7 @@ FROM node:20-alpine AS frontend_build
 WORKDIR /app
 COPY . .
 RUN npm ci
-RUN npm run build
+RUN SKIP_WAYFINDER=1 npm run build
 
 FROM php:8.3-fpm-alpine AS runtime
 WORKDIR /var/www/html
