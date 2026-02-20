@@ -16,6 +16,7 @@ export type VaultItem = {
     id: number;
     title: string;
     username: string | null;
+    server_ip: string | null;
     url: string | null;
     tags_json: string[] | null;
     assigned_user_id: number | null;
@@ -27,6 +28,20 @@ export type VaultItem = {
 };
 
 export type VaultReveal = {
+    password: string;
+    notes: string | null;
+};
+
+export type VaultShareLinkResponse = {
+    url: string;
+    expires_at: string;
+};
+
+export type SharedVaultItem = {
+    title: string;
+    username: string | null;
+    server_ip: string | null;
+    url: string | null;
     password: string;
     notes: string | null;
 };

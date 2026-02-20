@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Copy, Eye, FolderKey, Search } from 'lucide-react';
+import { Copy, Eye, FolderKey, Link2, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
 import type { BreadcrumbItem } from '@/types';
-import type { Group, VaultItem, VaultReveal, VaultUser } from '@/types/vault';
+import type { Group, VaultItem, VaultReveal, VaultShareLinkResponse, VaultUser } from '@/types/vault';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: '/admin' },
@@ -23,6 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 type ItemForm = {
     title: string;
     username: string;
+    server_ip: string;
     url: string;
     tags: string;
     assigned_user_id: string;
@@ -34,6 +35,7 @@ type ItemForm = {
 const defaultForm: ItemForm = {
     title: '',
     username: '',
+    server_ip: '',
     url: '',
     tags: '',
     assigned_user_id: '',
@@ -58,7 +60,7 @@ export default function AdminVaultItemsPage() {
     const visibleItems = useMemo(
         () =>
             (itemsQuery.data ?? []).filter((item) =>
-                [item.title, item.username ?? '', item.url ?? ''].join(' ').toLowerCase().includes(search.toLowerCase()),
+                [item.title, item.username ?? '', item.server_ip ?? '', item.url ?? ''].join(' ').toLowerCase().includes(search.toLowerCase()),
             ),
         [itemsQuery.data, search],
     );
@@ -72,6 +74,7 @@ export default function AdminVaultItemsPage() {
             const payload = {
                 title: form.title,
                 username: form.username || null,
+                server_ip: form.server_ip,
                 url: form.url || null,
                 tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
                 assigned_user_id: form.assigned_user_id ? Number(form.assigned_user_id) : null,
@@ -111,6 +114,15 @@ export default function AdminVaultItemsPage() {
         onError: (error: Error) => toast.error(error.message),
     });
 
+    const shareMutation = useMutation({
+        mutationFn: async (id: number) => apiRequest<VaultShareLinkResponse>(`/api/vault-items/${id}/share-link`, 'POST'),
+        onSuccess: async (data) => {
+            await copyText(data.url, 'Einmal-Link');
+            toast.success('Einmal-Link erstellt und kopiert');
+        },
+        onError: (error: Error) => toast.error(error.message),
+    });
+
     const copyText = async (value: string, label: string) => {
         await navigator.clipboard.writeText(value);
         toast.success(`${label} kopiert`);
@@ -127,6 +139,7 @@ export default function AdminVaultItemsPage() {
         setForm({
             title: item.title,
             username: item.username ?? '',
+            server_ip: item.server_ip ?? '',
             url: item.url ?? '',
             tags: (item.tags_json ?? []).join(', '),
             assigned_user_id: item.assigned_user_id ? String(item.assigned_user_id) : '',
@@ -147,7 +160,7 @@ export default function AdminVaultItemsPage() {
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <div className="relative w-full sm:w-72">
                                 <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                                <Input className="pl-9" placeholder="Suche nach Titel, Benutzername oder URL" value={search} onChange={(event) => setSearch(event.target.value)} />
+                                <Input className="pl-9" placeholder="Suche nach Titel, Benutzername, Server-IP oder URL" value={search} onChange={(event) => setSearch(event.target.value)} />
                             </div>
                             <Dialog open={open} onOpenChange={setOpen}>
                                 <DialogTrigger asChild>
@@ -160,6 +173,7 @@ export default function AdminVaultItemsPage() {
                                     <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(); }}>
                                         <div className="space-y-2"><Label>Titel</Label><Input required value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Benutzername</Label><Input value={form.username} onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))} /></div>
+                                        <div className="space-y-2"><Label>Server-IP</Label><Input required value={form.server_ip} onChange={(event) => setForm((prev) => ({ ...prev, server_ip: event.target.value }))} placeholder="z. B. 192.168.1.10" /></div>
                                         <div className="space-y-2"><Label>URL</Label><Input value={form.url} onChange={(event) => setForm((prev) => ({ ...prev, url: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Tags (kommagetrennt)</Label><Input value={form.tags} onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))} /></div>
                                         <div className="space-y-2">
@@ -191,6 +205,7 @@ export default function AdminVaultItemsPage() {
                                     <tr>
                                         <th className="px-4 py-3">Titel</th>
                                         <th className="px-4 py-3">Benutzername</th>
+                                        <th className="px-4 py-3">Server-IP</th>
                                         <th className="px-4 py-3">Tags</th>
                                         <th className="px-4 py-3">Zuweisung</th>
                                         <th className="px-4 py-3">Aktionen</th>
@@ -201,6 +216,7 @@ export default function AdminVaultItemsPage() {
                                         <tr key={item.id} className="border-t border-border/50">
                                             <td className="px-4 py-3">{item.title}</td>
                                             <td className="px-4 py-3">{item.username ?? '-'}</td>
+                                            <td className="px-4 py-3">{item.server_ip ?? '-'}</td>
                                             <td className="px-4 py-3">{(item.tags_json ?? []).join(', ') || '-'}</td>
                                             <td className="px-4 py-3">{item.assigned_user?.name ?? '-'} / {item.assigned_group?.name ?? '-'}</td>
                                             <td className="flex gap-2 px-4 py-3">
@@ -236,6 +252,7 @@ export default function AdminVaultItemsPage() {
                         {detailItem && (
                             <div className="space-y-3 text-sm">
                                 <p><span className="font-medium">Benutzername:</span> {detailItem.username ?? '-'}</p>
+                                <p><span className="font-medium">Server-IP:</span> {detailItem.server_ip ?? '-'}</p>
                                 <p><span className="font-medium">URL:</span> {detailItem.url ?? '-'}</p>
                                 <div className="flex gap-1">
                                     {(detailItem.tags_json ?? []).map((itemTag) => (
@@ -281,6 +298,10 @@ export default function AdminVaultItemsPage() {
                                         </Button>
                                     </div>
                                 </div>
+                                <Button className="w-full" variant="secondary" onClick={() => shareMutation.mutate(detailItem.id)} disabled={shareMutation.isPending}>
+                                    <Link2 className="mr-2 size-4" />
+                                    {shareMutation.isPending ? 'Einmal-Link wird erstellt...' : 'Einmal-Link zum Teilen erstellen'}
+                                </Button>
                             </div>
                         )}
                     </DialogContent>

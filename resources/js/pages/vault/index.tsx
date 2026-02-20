@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Copy, Eye, LockKeyhole, Search } from 'lucide-react';
+import { Copy, Eye, Link2, LockKeyhole, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
 import type { BreadcrumbItem } from '@/types';
-import type { VaultItem, VaultReveal } from '@/types/vault';
+import type { VaultItem, VaultReveal, VaultShareLinkResponse } from '@/types/vault';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Mein Tresor', href: '/vault' }];
 
@@ -37,6 +37,15 @@ export default function MyVaultPage() {
         onError: (error: Error) => toast.error(error.message),
     });
 
+    const shareMutation = useMutation({
+        mutationFn: async (itemId: number) => apiRequest<VaultShareLinkResponse>(`/api/vault-items/${itemId}/share-link`, 'POST'),
+        onSuccess: async (data) => {
+            await copyText(data.url, 'Einmal-Link');
+            toast.success('Einmal-Link erstellt und kopiert');
+        },
+        onError: (error: Error) => toast.error(error.message),
+    });
+
     const list = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
 
     const copyText = async (value: string, label: string) => {
@@ -56,7 +65,7 @@ export default function MyVaultPage() {
                         <div className="grid gap-3 md:grid-cols-4">
                             <div className="relative md:col-span-2">
                                 <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                                <Input className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Suche nach Titel, Benutzername oder URL" />
+                                <Input className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Suche nach Titel, Benutzername, Server-IP oder URL" />
                             </div>
                             <select className="rounded-md border border-input bg-background px-3 py-2 text-sm" value={scope} onChange={(event) => setScope(event.target.value as 'all' | 'direct' | 'group')}>
                                 <option value="all">Alle</option>
@@ -74,7 +83,7 @@ export default function MyVaultPage() {
                                             <div className="flex flex-wrap items-start justify-between gap-2">
                                                 <div>
                                                     <p className="font-medium">{item.title}</p>
-                                                    <p className="text-sm text-muted-foreground">{item.username ?? '-'} {item.url ? `· ${item.url}` : ''}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.username ?? '-'} {item.server_ip ? `· ${item.server_ip}` : ''} {item.url ? `· ${item.url}` : ''}</p>
                                                 </div>
                                                 <div className="flex gap-1">
                                                     {(item.tags_json ?? []).map((itemTag) => (
@@ -90,6 +99,7 @@ export default function MyVaultPage() {
                                         </DialogHeader>
                                         <div className="space-y-3 text-sm">
                                             <p><span className="font-medium">Benutzername:</span> {item.username ?? '-'}</p>
+                                            <p><span className="font-medium">Server-IP:</span> {item.server_ip ?? '-'}</p>
                                             <p><span className="font-medium">URL:</span> {item.url ?? '-'}</p>
                                             <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                                 <p className="mb-2 font-medium">Passwort</p>
@@ -130,6 +140,10 @@ export default function MyVaultPage() {
                                                     </Button>
                                                 </div>
                                             </div>
+                                            <Button className="w-full" variant="secondary" onClick={() => shareMutation.mutate(item.id)} disabled={shareMutation.isPending}>
+                                                <Link2 className="mr-2 size-4" />
+                                                {shareMutation.isPending ? 'Einmal-Link wird erstellt...' : 'Einmal-Link zum Teilen erstellen'}
+                                            </Button>
                                         </div>
                                     </DialogContent>
                                 </Dialog>

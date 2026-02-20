@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
                                                     size="sm"
                                                     disabled={auth.user?.id === user.id}
                                                     onClick={() => {
-                                                        const confirmed = window.confirm(`Benutzer \"${user.name}\" wirklich löschen?`);
+                                                        const confirmed = window.confirm(`Benutzer "${user.name}" wirklich löschen?`);
 
                                                         if (!confirmed) {
                                                             return;

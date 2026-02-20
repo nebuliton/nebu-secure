@@ -43,6 +43,7 @@ class VaultItemController extends Controller
         $item = VaultItem::query()->create([
             'title' => $request->string('title')->value(),
             'username' => $request->input('username'),
+            'server_ip' => $request->string('server_ip')->value(),
             'url' => $request->input('url'),
             'tags_json' => $request->input('tags'),
             'assigned_user_id' => $request->input('assigned_user_id'),
@@ -71,6 +72,7 @@ class VaultItemController extends Controller
         $payload = [
             'title' => $request->string('title')->value(),
             'username' => $request->input('username'),
+            'server_ip' => $request->string('server_ip')->value(),
             'url' => $request->input('url'),
             'tags_json' => $request->input('tags'),
             'assigned_user_id' => $request->input('assigned_user_id'),

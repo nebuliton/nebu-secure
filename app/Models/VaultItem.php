@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VaultItem extends Model
 {
@@ -13,6 +14,7 @@ class VaultItem extends Model
     protected $fillable = [
         'title',
         'username',
+        'server_ip',
         'url',
         'tags_json',
         'assigned_user_id',
@@ -65,5 +67,10 @@ class VaultItem extends Model
     public function updatedByAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_admin_id');
+    }
+
+    public function shareLinks(): HasMany
+    {
+        return $this->hasMany(VaultItemShareLink::class);
     }
 }

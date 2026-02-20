@@ -10,6 +10,12 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/share/{token}', function (string $token) {
+    return Inertia::render('vault/shared', [
+        'token' => $token,
+    ]);
+})->where('token', '[A-Za-z0-9]+')->name('vault.share');
+
 Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/dashboard', function () {
         return Inertia::render('dashboard');

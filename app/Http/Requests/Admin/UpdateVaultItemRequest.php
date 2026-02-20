@@ -16,6 +16,7 @@ class UpdateVaultItemRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:180'],
             'username' => ['nullable', 'string', 'max:180'],
+            'server_ip' => ['required', 'ip', 'max:45'],
             'url' => ['nullable', 'url', 'max:255'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:60'],

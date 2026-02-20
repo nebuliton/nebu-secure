@@ -35,7 +35,7 @@ if (count($keys) === 0 && env('VAULT_MASTER_KEY')) {
     $keys[1] = (string) env('VAULT_MASTER_KEY');
 }
 
-if (count($keys) === 0 && app()->isLocal()) {
+if (count($keys) === 0 && env('APP_ENV', 'production') === 'local') {
     $keys[1] = 'base64:'.base64_encode(Str::random(64));
 }
 

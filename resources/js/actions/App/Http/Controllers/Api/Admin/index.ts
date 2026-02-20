@@ -1,5 +1,5 @@
-import UserController from './UserController'
 import GroupController from './GroupController'
+import UserController from './UserController'
 import VaultItemController from './VaultItemController'
 const Admin = {
     UserController: Object.assign(UserController, UserController),

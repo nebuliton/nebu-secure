@@ -4,8 +4,11 @@ use App\Http\Controllers\Api\Admin\GroupController as AdminGroupController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\Admin\VaultItemController as AdminVaultItemController;
 use App\Http\Controllers\Api\VaultItemController;
+use App\Http\Controllers\Api\VaultItemShareLinkController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/share-links/{token}', [VaultItemShareLinkController::class, 'consume'])->where('token', '[A-Za-z0-9]+');
 
 Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::get('/me', function (Request $request) {
@@ -26,4 +29,5 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::get('/vault-items', [VaultItemController::class, 'index']);
     Route::get('/vault-items/{vaultItem}', [VaultItemController::class, 'show']);
     Route::post('/vault-items/{vaultItem}/reveal', [VaultItemController::class, 'reveal'])->middleware('throttle:sensitive');
+    Route::post('/vault-items/{vaultItem}/share-link', [VaultItemShareLinkController::class, 'store'])->middleware('throttle:sensitive');
 });

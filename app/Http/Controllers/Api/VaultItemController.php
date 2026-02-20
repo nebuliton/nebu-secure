@@ -47,6 +47,7 @@ class VaultItemController extends Controller
             $query->where(function ($builder) use ($search): void {
                 $builder->where('title', 'like', "%{$search}%")
                     ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('server_ip', 'like', "%{$search}%")
                     ->orWhere('url', 'like', "%{$search}%");
             });
         }
