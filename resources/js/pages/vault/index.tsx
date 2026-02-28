@@ -122,27 +122,47 @@ export default function MyVaultPage() {
                                             <p><span className="font-medium">Server-IP:</span> {item.server_ip ?? '-'}</p>
                                             <p><span className="font-medium">URL:</span> {item.url ?? '-'}</p>
                                             <p><span className="font-medium">Gruppen:</span> {((item.groups ?? []).map((group) => group.name).join(', ')) || item.assigned_group?.name || '-'}</p>
-                                            <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                                <p className="mb-2 font-medium">Passwort</p>
-                                                <div className="flex items-center gap-2">
-                                                    <Input readOnly value={revealed?.password ?? '••••••••••••'} />
-                                                    <Button size="icon" variant="secondary" onClick={() => revealMutation.mutate(item.id)}>
-                                                        <Eye className="size-4" />
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            if (revealed?.password) {
-                                                                void copyText(revealed.password, 'Passwort');
-                                                            }
-                                                        }}
-                                                        disabled={!revealed?.password}
-                                                    >
-                                                        <Copy className="size-4" />
-                                                    </Button>
+                                            <Button className="w-full" variant="secondary" onClick={() => revealMutation.mutate(item.id)} disabled={revealMutation.isPending}>
+                                                <Eye className="mr-2 size-4" />
+                                                {revealMutation.isPending ? 'Wird entschlüsselt...' : 'Geheimdaten anzeigen'}
+                                            </Button>
+                                            {!!revealed?.password && (
+                                                <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                                    <p className="mb-2 font-medium">Passwort</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input readOnly value={revealed.password} />
+                                                        <Button
+                                                            size="icon"
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                void copyText(revealed.password as string, 'Passwort');
+                                                            }}
+                                                        >
+                                                            <Copy className="size-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
+                                            {!!revealed?.value && (
+                                                <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                                    <p className="mb-2 font-medium">Wert</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input readOnly value={revealed.value} />
+                                                        <Button
+                                                            size="icon"
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                void copyText(revealed.value as string, 'Wert');
+                                                            }}
+                                                        >
+                                                            <Copy className="size-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {revealed && !revealed.password && !revealed.value && (
+                                                <p className="text-xs text-muted-foreground">Kein Passwort und kein Wert hinterlegt.</p>
+                                            )}
                                             <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                                 <p className="mb-2 font-medium">Notizen</p>
                                                 <div className="flex items-center gap-2">

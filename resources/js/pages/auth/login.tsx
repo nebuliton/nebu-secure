@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
@@ -20,7 +18,7 @@ export default function Login({ status, canResetPassword }: Props) {
         <AuthLayout title="Anmeldung" description="Bitte mit deinen Zugangsdaten einloggen">
             <Head title="Anmelden" />
 
-            <Form {...store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
+            <Form action="/login" method="post" resetOnSuccess={['password']} className="flex flex-col gap-6">
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
@@ -34,7 +32,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Passwort</Label>
                                     {canResetPassword && (
-                                        <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
+                                        <TextLink href="/forgot-password" className="ml-auto text-sm" tabIndex={5}>
                                             Passwort vergessen?
                                         </TextLink>
                                     )}

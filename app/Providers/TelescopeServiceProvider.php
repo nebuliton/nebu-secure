@@ -38,6 +38,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     {
         Telescope::hideRequestParameters([
             '_token',
+            'value',
             'password',
             'password_confirmation',
             'notes',

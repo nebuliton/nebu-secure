@@ -3,7 +3,6 @@
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
@@ -57,7 +56,7 @@ Artisan::command('user:create
     $user = User::query()->create([
         'name' => $name,
         'email' => $email,
-        'password' => Hash::make($password),
+        'password' => $password,
         'role' => $isAdmin ? 'admin' : 'user',
         'is_active' => $isActive,
     ]);

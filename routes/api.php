@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\GroupController as AdminGroupController;
+use App\Http\Controllers\Api\Admin\AppSettingsController as AdminAppSettingsController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\Admin\VaultItemController as AdminVaultItemController;
 use App\Http\Controllers\Api\VaultItemController;
@@ -16,6 +17,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     });
 
     Route::prefix('/admin')->middleware('can:viewAny,App\\Models\\User')->group(function (): void {
+        Route::get('settings', [AdminAppSettingsController::class, 'show']);
+        Route::put('settings', [AdminAppSettingsController::class, 'update']);
+
         Route::apiResource('users', AdminUserController::class);
         Route::patch('users/{user}/toggle-active', [AdminUserController::class, 'toggleActive']);
         Route::post('users/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->middleware('throttle:sensitive');

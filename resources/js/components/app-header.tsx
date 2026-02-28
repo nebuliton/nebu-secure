@@ -31,8 +31,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
-import type { BreadcrumbItem, NavItem } from '@/types';
+import type { AppSettings, BreadcrumbItem, NavItem } from '@/types';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -43,21 +42,8 @@ type Props = {
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: '/dashboard',
         icon: LayoutGrid,
-    },
-];
-
-const rightNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
     },
 ];
 
@@ -66,7 +52,33 @@ const activeItemStyles =
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
-    const { auth } = page.props;
+    const { auth, branding } = page.props as {
+        auth: {
+            user: {
+                id: number;
+                name: string;
+                avatar?: string;
+            } | null;
+        };
+        branding?: AppSettings;
+    };
+
+    const rightNavItems: NavItem[] = [];
+    if (branding?.repository_url) {
+        rightNavItems.push({
+            title: 'Repository',
+            href: branding.repository_url,
+            icon: Folder,
+        });
+    }
+    if (branding?.documentation_url) {
+        rightNavItems.push({
+            title: 'Documentation',
+            href: branding.documentation_url,
+            icon: BookOpen,
+        });
+    }
+
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     return (
@@ -135,7 +147,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href="/dashboard"
                         prefetch
                         className="flex items-center space-x-2"
                     >

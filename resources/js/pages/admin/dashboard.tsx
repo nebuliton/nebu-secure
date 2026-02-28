@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { FolderKey, Layers3, UserCog, Vault } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { FolderKey, Layers3, Settings, UserCog, Vault } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -33,16 +33,25 @@ const sections = [
         href: '/vault',
         icon: Vault,
     },
+    {
+        title: 'Einstellungen',
+        description: 'Branding, Links und globale App-Daten fuer Open-Source-Betrieb pflegen.',
+        href: '/admin/settings',
+        icon: Settings,
+    },
 ];
 
 export default function AdminDashboardPage() {
+    const { name } = usePage<{ name?: string }>().props;
+    const appName = name ?? 'NebU Secure Vault';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Übersicht" />
             <div className="space-y-6 p-6">
                 <Card className="overflow-hidden border-border/70 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-slate-900 dark:to-slate-800">
                     <CardHeader>
-                        <CardTitle className="text-2xl">NebU Secure Vault Admin</CardTitle>
+                        <CardTitle className="text-2xl">{appName} Admin</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="max-w-3xl text-sm text-muted-foreground">

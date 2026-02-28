@@ -27,7 +27,7 @@ export default function SharedVaultPage({ token }: SharedVaultPageProps) {
 
     return (
         <>
-            <Head title="Geteilter Passwort-Link" />
+            <Head title="Geteilter Wert-Link" />
             <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
                 <Card className="w-full max-w-xl border-border/70">
                     <CardHeader>
@@ -51,15 +51,32 @@ export default function SharedVaultPage({ token }: SharedVaultPageProps) {
                                 <p><span className="font-medium">Server-IP:</span> {itemQuery.data.server_ip ?? '-'}</p>
                                 <p><span className="font-medium">URL:</span> {itemQuery.data.url ?? '-'}</p>
 
-                                <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                    <p className="mb-2 font-medium">Passwort</p>
-                                    <div className="flex items-center gap-2">
-                                        <Input readOnly value={itemQuery.data.password} />
-                                        <Button size="icon" variant="outline" onClick={() => void copyText(itemQuery.data.password, 'Passwort')}>
-                                            <Copy className="size-4" />
-                                        </Button>
+                                {!!itemQuery.data.password && (
+                                    <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                        <p className="mb-2 font-medium">Passwort</p>
+                                        <div className="flex items-center gap-2">
+                                            <Input readOnly value={itemQuery.data.password} />
+                                            <Button size="icon" variant="outline" onClick={() => void copyText(itemQuery.data.password as string, 'Passwort')}>
+                                                <Copy className="size-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {!!itemQuery.data.value && (
+                                    <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                        <p className="mb-2 font-medium">Wert</p>
+                                        <div className="flex items-center gap-2">
+                                            <Input readOnly value={itemQuery.data.value} />
+                                            <Button size="icon" variant="outline" onClick={() => void copyText(itemQuery.data.value as string, 'Wert')}>
+                                                <Copy className="size-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                                {!itemQuery.data.password && !itemQuery.data.value && (
+                                    <p className="text-xs text-muted-foreground">Kein Passwort und kein Wert hinterlegt.</p>
+                                )}
 
                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                     <p className="mb-2 font-medium">Notizen</p>

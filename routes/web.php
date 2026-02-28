@@ -41,6 +41,11 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         return Inertia::render('admin/vault-items');
     })->name('admin.vault-items');
 
+    Route::get('/admin/settings', function () {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+        return Inertia::render('admin/settings');
+    })->name('admin.settings');
+
     Route::get('/vault', function () {
         return Inertia::render('vault/index');
     })->name('vault.index');

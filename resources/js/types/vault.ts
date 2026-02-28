@@ -29,7 +29,8 @@ export type VaultItem = {
 };
 
 export type VaultReveal = {
-    password: string;
+    value: string | null;
+    password: string | null;
     notes: string | null;
 };
 
@@ -43,6 +44,7 @@ export type SharedVaultItem = {
     username: string | null;
     server_ip: string | null;
     url: string | null;
-    password: string;
+    value: string | null;
+    password: string | null;
     notes: string | null;
 };

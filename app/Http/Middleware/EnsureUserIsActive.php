@@ -15,7 +15,15 @@ class EnsureUserIsActive
         if ($user && ! $user->is_active) {
             auth()->logout();
 
-            abort(403, 'Account disabled');
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('auth.inactive'),
+                ], 403);
+            }
+
+            return redirect()->route('login')->withErrors([
+                'email' => __('auth.inactive'),
+            ]);
         }
 
         return $next($request);

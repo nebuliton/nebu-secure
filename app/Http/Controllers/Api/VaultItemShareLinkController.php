@@ -77,6 +77,7 @@ class VaultItemShareLinkController extends Controller
                 'username' => $vaultItem->username,
                 'server_ip' => $vaultItem->server_ip,
                 'url' => $vaultItem->url,
+                'value' => $secret['value'],
                 'password' => $secret['password'],
                 'notes' => $secret['notes'],
             ];

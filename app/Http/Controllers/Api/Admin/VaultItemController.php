@@ -36,7 +36,8 @@ class VaultItemController extends Controller
         $this->authorize('create', VaultItem::class);
 
         $encrypted = $this->vaultItemCryptoService->encryptPayload(
-            $request->string('password')->value(),
+            $request->input('password'),
+            $request->input('value'),
             $request->input('notes'),
         );
 
@@ -106,9 +107,10 @@ class VaultItemController extends Controller
             'updated_by_admin_id' => $request->user()->id,
         ];
 
-        if ($request->filled('password')) {
+        if ($request->filled('value') || $request->filled('password')) {
             $encrypted = $this->vaultItemCryptoService->encryptPayload(
-                $request->string('password')->value(),
+                $request->input('password'),
+                $request->input('value'),
                 $request->boolean('clear_notes') ? null : $request->input('notes'),
             );
 

@@ -8,7 +8,7 @@ import '../css/app.css';
 import { initializeTheme } from './hooks/use-appearance';
 import { queryClient } from './lib/query-client';
 
-const appName = import.meta.env.VITE_APP_NAME || 'NebU Secure Vault';
+let appName = import.meta.env.VITE_APP_NAME || 'NebU Secure Vault';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -18,6 +18,11 @@ createInertiaApp({
             import.meta.glob('./pages/**/*.tsx'),
         ),
     setup({ el, App, props }) {
+        const initialName = (props.initialPage.props as { name?: unknown }).name;
+        if (typeof initialName === 'string' && initialName.trim() !== '') {
+            appName = initialName;
+        }
+
         const root = createRoot(el);
 
         root.render(

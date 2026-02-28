@@ -29,6 +29,7 @@ type ItemForm = {
     assigned_user_id: string;
     assigned_group_ids: string[];
     password: string;
+    value: string;
     notes: string;
 };
 
@@ -41,6 +42,7 @@ const defaultForm: ItemForm = {
     assigned_user_id: '',
     assigned_group_ids: [],
     password: '',
+    value: '',
     notes: '',
 };
 
@@ -84,10 +86,6 @@ export default function AdminVaultItemsPage() {
 
     const saveMutation = useMutation({
         mutationFn: async () => {
-            if (!form.assigned_user_id && form.assigned_group_ids.length === 0) {
-                throw new Error('Bitte mindestens User oder Gruppe zuweisen.');
-            }
-
             const payload = {
                 title: form.title,
                 username: form.username || null,
@@ -97,6 +95,7 @@ export default function AdminVaultItemsPage() {
                 assigned_user_id: form.assigned_user_id ? Number(form.assigned_user_id) : null,
                 group_ids: form.assigned_group_ids.map((groupId) => Number(groupId)),
                 password: form.password || undefined,
+                value: form.value || undefined,
                 notes: form.notes || null,
             };
 
@@ -164,6 +163,7 @@ export default function AdminVaultItemsPage() {
                 ? (item.groups ?? []).map((group) => String(group.id))
                 : (item.assigned_group_id ? [String(item.assigned_group_id)] : []),
             password: '',
+            value: '',
             notes: '',
         });
         setOpen(true);
@@ -193,9 +193,9 @@ export default function AdminVaultItemsPage() {
                                         </DialogDescription>
                                     </DialogHeader>
                                     <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(); }}>
-                                        <div className="space-y-2"><Label>Titel</Label><Input required value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} /></div>
+                                        <div className="space-y-2"><Label>Titel</Label><Input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Benutzername</Label><Input value={form.username} onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))} /></div>
-                                        <div className="space-y-2"><Label>Server-IP</Label><Input required value={form.server_ip} onChange={(event) => setForm((prev) => ({ ...prev, server_ip: event.target.value }))} placeholder="z. B. 192.168.1.10" /></div>
+                                        <div className="space-y-2"><Label>Server-IP</Label><Input value={form.server_ip} onChange={(event) => setForm((prev) => ({ ...prev, server_ip: event.target.value }))} placeholder="z. B. 192.168.1.10" /></div>
                                         <div className="space-y-2"><Label>URL</Label><Input value={form.url} onChange={(event) => setForm((prev) => ({ ...prev, url: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Tags (kommagetrennt)</Label><Input value={form.tags} onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))} /></div>
                                         <div className="space-y-2">
@@ -226,7 +226,8 @@ export default function AdminVaultItemsPage() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <div className="space-y-2"><Label>{editingItem ? 'Neues Passwort (optional)' : 'Passwort'}</Label><Input type="password" required={!editingItem} value={form.password} onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))} /></div>
+                                        <div className="space-y-2"><Label>{editingItem ? 'Neues Passwort (optional)' : 'Passwort (optional)'}</Label><Input type="password" value={form.password} onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))} /></div>
+                                        <div className="space-y-2"><Label>{editingItem ? 'Neuer Wert (optional)' : 'Wert (optional)'}</Label><Input value={form.value} onChange={(event) => setForm((prev) => ({ ...prev, value: event.target.value }))} /></div>
                                         <div className="space-y-2"><Label>Notizen</Label><textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} /></div>
                                         <Button className="w-full" disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Speichern...' : 'Speichern'}</Button>
                                     </form>
@@ -313,27 +314,47 @@ export default function AdminVaultItemsPage() {
                                     ))}
                                 </div>
                                 <p><span className="font-medium">Gruppen:</span> {((detailItem.groups ?? []).map((group) => group.name).join(', ')) || detailItem.assigned_group?.name || '-'}</p>
-                                <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                    <p className="mb-2 font-medium">Passwort</p>
-                                    <div className="flex items-center gap-2">
-                                        <Input readOnly value={revealed?.password ?? '••••••••••••'} />
-                                        <Button size="icon" variant="secondary" onClick={() => revealMutation.mutate(detailItem.id)}>
-                                            <Eye className="size-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="outline"
-                                            disabled={!revealed?.password}
-                                            onClick={() => {
-                                                if (revealed?.password) {
-                                                    void copyText(revealed.password, 'Passwort');
-                                                }
-                                            }}
-                                        >
-                                            <Copy className="size-4" />
-                                        </Button>
+                                <Button className="w-full" variant="secondary" onClick={() => revealMutation.mutate(detailItem.id)} disabled={revealMutation.isPending}>
+                                    <Eye className="mr-2 size-4" />
+                                    {revealMutation.isPending ? 'Wird entschlüsselt...' : 'Geheimdaten anzeigen'}
+                                </Button>
+                                {!!revealed?.password && (
+                                    <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                        <p className="mb-2 font-medium">Passwort</p>
+                                        <div className="flex items-center gap-2">
+                                            <Input readOnly value={revealed.password} />
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    void copyText(revealed.password as string, 'Passwort');
+                                                }}
+                                            >
+                                                <Copy className="size-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+                                {!!revealed?.value && (
+                                    <div className="rounded-md border border-border/70 bg-muted/30 p-3">
+                                        <p className="mb-2 font-medium">Wert</p>
+                                        <div className="flex items-center gap-2">
+                                            <Input readOnly value={revealed.value} />
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    void copyText(revealed.value as string, 'Wert');
+                                                }}
+                                            >
+                                                <Copy className="size-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                                {revealed && !revealed.password && !revealed.value && (
+                                    <p className="text-xs text-muted-foreground">Kein Passwort und kein Wert hinterlegt.</p>
+                                )}
                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                     <p className="mb-2 font-medium">Notizen</p>
                                     <div className="flex items-center gap-2">

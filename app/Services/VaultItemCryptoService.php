@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\VaultItem;
-use RuntimeException;
 
 class VaultItemCryptoService
 {
@@ -11,14 +10,15 @@ class VaultItemCryptoService
     {
     }
 
-    public function encryptPayload(?string $password, ?string $notes): array
+    public function encryptPayload(?string $password, ?string $value, ?string $notes): array
     {
-        if ($password === null || $password === '') {
-            throw new RuntimeException('Password is required');
-        }
+        $password = $password ?? '';
 
         $dataKey = $this->cryptoService->generateDataKey();
         $passwordPayload = $this->cryptoService->encryptField($password, $dataKey);
+        $valuePayload = $value !== null && $value !== ''
+            ? $this->cryptoService->encryptField($value, $dataKey)
+            : null;
         $notesPayload = $notes !== null && $notes !== ''
             ? $this->cryptoService->encryptField($notes, $dataKey)
             : null;
@@ -30,6 +30,9 @@ class VaultItemCryptoService
             'password_ciphertext' => $passwordPayload['ciphertext'],
             'password_iv' => $passwordPayload['iv'],
             'password_tag' => $passwordPayload['tag'],
+            'value_ciphertext' => $valuePayload['ciphertext'] ?? null,
+            'value_iv' => $valuePayload['iv'] ?? null,
+            'value_tag' => $valuePayload['tag'] ?? null,
             'notes_ciphertext' => $notesPayload['ciphertext'] ?? null,
             'notes_iv' => $notesPayload['iv'] ?? null,
             'notes_tag' => $notesPayload['tag'] ?? null,
@@ -51,6 +54,16 @@ class VaultItemCryptoService
         );
 
         $notes = null;
+        $value = null;
+
+        if ($item->value_ciphertext && $item->value_iv && $item->value_tag) {
+            $value = $this->cryptoService->decryptField(
+                $item->value_ciphertext,
+                $item->value_iv,
+                $item->value_tag,
+                $dataKey,
+            );
+        }
 
         if ($item->notes_ciphertext && $item->notes_iv && $item->notes_tag) {
             $notes = $this->cryptoService->decryptField(
@@ -61,7 +74,16 @@ class VaultItemCryptoService
             );
         }
 
+        if ($password === '') {
+            $password = null;
+        }
+
+        if ($value === '') {
+            $value = null;
+        }
+
         return [
+            'value' => $value,
             'password' => $password,
             'notes' => $notes,
         ];
