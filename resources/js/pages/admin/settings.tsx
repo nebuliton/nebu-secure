@@ -1,10 +1,10 @@
 import { Head } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Building2, Palette, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -69,24 +69,46 @@ const toPayload = (form: SettingsForm): AppSettings => ({
 });
 
 export default function AdminSettingsPage() {
-    const [form, setForm] = useState<SettingsForm>(emptyForm);
+    const [formDraft, setFormDraft] = useState<SettingsForm | null>(null);
 
     const settingsQuery = useQuery({
         queryKey: ['admin-settings'],
         queryFn: () => apiRequest<AppSettings>('/api/admin/settings'),
     });
 
-    useEffect(() => {
-        if (settingsQuery.data) {
-            setForm(toForm(settingsQuery.data));
+    const form = useMemo<SettingsForm>(() => {
+        if (formDraft) {
+            return formDraft;
         }
-    }, [settingsQuery.data]);
+
+        if (settingsQuery.data) {
+            return toForm(settingsQuery.data);
+        }
+
+        return emptyForm;
+    }, [formDraft, settingsQuery.data]);
+
+    const updateField = <K extends keyof SettingsForm>(
+        key: K,
+        value: SettingsForm[K],
+    ): void => {
+        setFormDraft((prev) => {
+            const base =
+                prev ??
+                (settingsQuery.data ? toForm(settingsQuery.data) : emptyForm);
+
+            return {
+                ...base,
+                [key]: value,
+            };
+        });
+    };
 
     const saveMutation = useMutation({
         mutationFn: async (payload: AppSettings) =>
             apiRequest<AppSettings>('/api/admin/settings', 'PUT', payload),
         onSuccess: (updated) => {
-            setForm(toForm(updated));
+            setFormDraft(toForm(updated));
             toast.success('Einstellungen gespeichert');
         },
         onError: (error: Error) => {
@@ -107,7 +129,8 @@ export default function AdminSettingsPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-sm text-muted-foreground">
-                            Hier konfigurierst du Branding und globale Projektdaten ohne Code-Änderung.
+                            Hier konfigurierst du Branding und globale
+                            Projektdaten ohne Code-Änderung.
                         </p>
                     </CardContent>
                 </Card>
@@ -124,19 +147,31 @@ export default function AdminSettingsPage() {
                                     <Input
                                         id="app_name"
                                         value={form.app_name}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, app_name: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'app_name',
+                                                event.target.value,
+                                            )
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="app_logo_url">Logo URL</Label>
+                                    <Label htmlFor="app_logo_url">
+                                        Logo URL
+                                    </Label>
                                     <Input
                                         id="app_logo_url"
                                         type="url"
                                         placeholder="https://example.org/logo.png"
                                         value={form.app_logo_url}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, app_logo_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'app_logo_url',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
@@ -145,17 +180,29 @@ export default function AdminSettingsPage() {
                                     <Input
                                         id="app_tagline"
                                         value={form.app_tagline}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, app_tagline: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'app_tagline',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="app_description">Beschreibung</Label>
+                                    <Label htmlFor="app_description">
+                                        Beschreibung
+                                    </Label>
                                     <textarea
                                         id="app_description"
                                         className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={form.app_description}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, app_description: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'app_description',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
                             </CardContent>
@@ -167,24 +214,38 @@ export default function AdminSettingsPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="repository_url">Repository URL</Label>
+                                    <Label htmlFor="repository_url">
+                                        Repository URL
+                                    </Label>
                                     <Input
                                         id="repository_url"
                                         type="url"
                                         placeholder="https://github.com/org/repo"
                                         value={form.repository_url}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, repository_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'repository_url',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="documentation_url">Dokumentation URL</Label>
+                                    <Label htmlFor="documentation_url">
+                                        Dokumentation URL
+                                    </Label>
                                     <Input
                                         id="documentation_url"
                                         type="url"
                                         placeholder="https://docs.example.org"
                                         value={form.documentation_url}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, documentation_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'documentation_url',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
                             </CardContent>
@@ -199,41 +260,69 @@ export default function AdminSettingsPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="company_name">Organisation</Label>
+                                    <Label htmlFor="company_name">
+                                        Organisation
+                                    </Label>
                                     <Input
                                         id="company_name"
                                         value={form.company_name}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, company_name: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'company_name',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="support_email">Support E-Mail</Label>
+                                    <Label htmlFor="support_email">
+                                        Support E-Mail
+                                    </Label>
                                     <Input
                                         id="support_email"
                                         type="email"
                                         value={form.support_email}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, support_email: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'support_email',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="imprint_url">Impressum URL</Label>
+                                    <Label htmlFor="imprint_url">
+                                        Impressum URL
+                                    </Label>
                                     <Input
                                         id="imprint_url"
                                         type="url"
                                         value={form.imprint_url}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, imprint_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'imprint_url',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="privacy_url">Datenschutz URL</Label>
+                                    <Label htmlFor="privacy_url">
+                                        Datenschutz URL
+                                    </Label>
                                     <Input
                                         id="privacy_url"
                                         type="url"
                                         value={form.privacy_url}
-                                        onChange={(event) => setForm((prev) => ({ ...prev, privacy_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            updateField(
+                                                'privacy_url',
+                                                event.target.value,
+                                            )
+                                        }
                                     />
                                 </div>
                             </CardContent>
@@ -241,11 +330,16 @@ export default function AdminSettingsPage() {
 
                         <Button
                             onClick={() => saveMutation.mutate(toPayload(form))}
-                            disabled={saveMutation.isPending || settingsQuery.isLoading}
+                            disabled={
+                                saveMutation.isPending ||
+                                settingsQuery.isLoading
+                            }
                             className="w-full md:w-auto"
                         >
                             <Save className="mr-2 size-4" />
-                            {saveMutation.isPending ? 'Speichern...' : 'Einstellungen speichern'}
+                            {saveMutation.isPending
+                                ? 'Speichern...'
+                                : 'Einstellungen speichern'}
                         </Button>
                     </div>
 
@@ -257,22 +351,37 @@ export default function AdminSettingsPage() {
                             <div className="flex items-center gap-3">
                                 <div className="flex size-12 items-center justify-center overflow-hidden rounded-md bg-muted">
                                     {form.app_logo_url ? (
-                                        <img src={form.app_logo_url} alt={form.app_name || 'Logo'} className="size-full object-cover" />
+                                        <img
+                                            src={form.app_logo_url}
+                                            alt={form.app_name || 'Logo'}
+                                            className="size-full object-cover"
+                                        />
                                     ) : (
-                                        <span className="text-xs text-muted-foreground">Logo</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            Logo
+                                        </span>
                                     )}
                                 </div>
                                 <div>
-                                    <p className="font-semibold">{form.app_name || 'App Name'}</p>
-                                    <p className="text-xs text-muted-foreground">{form.app_tagline || 'Tagline'}</p>
+                                    <p className="font-semibold">
+                                        {form.app_name || 'App Name'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {form.app_tagline || 'Tagline'}
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                                {form.app_description || 'Beschreibung fuer Landing- und Projektkontext.'}
+                                {form.app_description ||
+                                    'Beschreibung fuer Landing- und Projektkontext.'}
                             </div>
 
-                            {settingsQuery.isLoading && <p className="text-xs text-muted-foreground">Einstellungen werden geladen...</p>}
+                            {settingsQuery.isLoading && (
+                                <p className="text-xs text-muted-foreground">
+                                    Einstellungen werden geladen...
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

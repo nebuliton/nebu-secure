@@ -1,156 +1,221 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
+import {
+    queryParams,
+    type RouteQueryOptions,
+    type RouteDefinition,
+    type RouteFormDefinition,
+    applyUrlDefaults,
+} from './../../../../../wayfinder';
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::index
+ * @see \Laravel\Telescope\Http\Controllers\MailController::index
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
  * @route '/telescope/telescope-api/mail'
  */
-export const index = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const index = (
+    options?: RouteQueryOptions,
+): RouteDefinition<'post'> => ({
     url: index.url(options),
     method: 'post',
-})
+});
 
 index.definition = {
-    methods: ["post"],
+    methods: ['post'],
     url: '/telescope/telescope-api/mail',
-} satisfies RouteDefinition<["post"]>
+} satisfies RouteDefinition<['post']>;
 
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::index
+ * @see \Laravel\Telescope\Http\Controllers\MailController::index
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
  * @route '/telescope/telescope-api/mail'
  */
 index.url = (options?: RouteQueryOptions) => {
-    return index.definition.url + queryParams(options)
-}
+    return index.definition.url + queryParams(options);
+};
 
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::index
+ * @see \Laravel\Telescope\Http\Controllers\MailController::index
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
  * @route '/telescope/telescope-api/mail'
  */
 index.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: index.url(options),
     method: 'post',
-})
+});
 
-    /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::index
- * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
- * @route '/telescope/telescope-api/mail'
- */
-    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: index.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::index
- * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
- * @route '/telescope/telescope-api/mail'
- */
-        indexForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: index.url(options),
-            method: 'post',
-        })
-    
-    index.form = indexForm
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+ * @see \Laravel\Telescope\Http\Controllers\MailController::index
+ * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
+ * @route '/telescope/telescope-api/mail'
+ */
+const indexForm = (
+    options?: RouteQueryOptions,
+): RouteFormDefinition<'post'> => ({
+    action: index.url(options),
+    method: 'post',
+});
+
+/**
+ * @see \Laravel\Telescope\Http\Controllers\MailController::index
+ * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:33
+ * @route '/telescope/telescope-api/mail'
+ */
+indexForm.post = (
+    options?: RouteQueryOptions,
+): RouteFormDefinition<'post'> => ({
+    action: index.url(options),
+    method: 'post',
+});
+
+index.form = indexForm;
+/**
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-export const show = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
-})
+});
 
 show.definition = {
-    methods: ["get","head"],
+    methods: ['get', 'head'],
     url: '/telescope/telescope-api/mail/{telescopeEntryId}',
-} satisfies RouteDefinition<["get","head"]>
+} satisfies RouteDefinition<['get', 'head']>;
 
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-show.url = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions) => {
+show.url = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { telescopeEntryId: args }
+        args = { telescopeEntryId: args };
     }
 
-    
     if (Array.isArray(args)) {
         args = {
-                    telescopeEntryId: args[0],
-                }
+            telescopeEntryId: args[0],
+        };
     }
 
-    args = applyUrlDefaults(args)
+    args = applyUrlDefaults(args);
 
     const parsedArgs = {
-                        telescopeEntryId: args.telescopeEntryId,
-                }
+        telescopeEntryId: args.telescopeEntryId,
+    };
 
-    return show.definition.url
-            .replace('{telescopeEntryId}', parsedArgs.telescopeEntryId.toString())
+    return (
+        show.definition.url
+            .replace(
+                '{telescopeEntryId}',
+                parsedArgs.telescopeEntryId.toString(),
+            )
             .replace(/\/+$/, '') + queryParams(options)
-}
+    );
+};
 
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-show.get = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
-})
+});
 /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-show.head = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
-})
+});
 
-    /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+/**
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-    const showForm = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: show.url(args, options),
-        method: 'get',
-    })
+const showForm = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteFormDefinition<'get'> => ({
+    action: show.url(args, options),
+    method: 'get',
+});
 
-            /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+/**
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-        showForm.get = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: show.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \Laravel\Telescope\Http\Controllers\MailController::show
+showForm.get = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteFormDefinition<'get'> => ({
+    action: show.url(args, options),
+    method: 'get',
+});
+/**
+ * @see \Laravel\Telescope\Http\Controllers\MailController::show
  * @see vendor/laravel/telescope/src/Http/Controllers/MailController.php:51
  * @route '/telescope/telescope-api/mail/{telescopeEntryId}'
  */
-        showForm.head = (args: { telescopeEntryId: string | number } | [telescopeEntryId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: show.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    show.form = showForm
-const MailController = { index, show }
+showForm.head = (
+    args:
+        | { telescopeEntryId: string | number }
+        | [telescopeEntryId: string | number]
+        | string
+        | number,
+    options?: RouteQueryOptions,
+): RouteFormDefinition<'get'> => ({
+    action: show.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'HEAD',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        },
+    }),
+    method: 'get',
+});
 
-export default MailController
+show.form = showForm;
+const MailController = { index, show };
+
+export default MailController;

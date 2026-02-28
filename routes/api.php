@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\GroupController as AdminGroupController;
 use App\Http\Controllers\Api\Admin\AppSettingsController as AdminAppSettingsController;
+use App\Http\Controllers\Api\Admin\GroupController as AdminGroupController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\Admin\VaultItemController as AdminVaultItemController;
 use App\Http\Controllers\Api\VaultItemController;

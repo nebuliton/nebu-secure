@@ -9,8 +9,9 @@
 
 @theme {
     --font-sans:
-        'Manrope', 'Satoshi', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Manrope', 'Satoshi', 'Plus Jakarta Sans', ui-sans-serif, system-ui,
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -113,6 +114,16 @@
 
     body {
         @apply bg-background text-foreground antialiased;
-        background-image: radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--color-primary) 10%, transparent) 0, transparent 45%), radial-gradient(circle at 0% 100%, color-mix(in oklab, var(--color-accent) 20%, transparent) 0, transparent 40%);
+        background-image:
+            radial-gradient(
+                circle at 100% 0%,
+                color-mix(in oklab, var(--color-primary) 10%, transparent) 0,
+                transparent 45%
+            ),
+            radial-gradient(
+                circle at 0% 100%,
+                color-mix(in oklab, var(--color-accent) 20%, transparent) 0,
+                transparent 40%
+            );
     }
 }

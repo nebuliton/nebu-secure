@@ -6,9 +6,7 @@ use App\Models\VaultItem;
 
 class VaultItemCryptoService
 {
-    public function __construct(private readonly CryptoService $cryptoService)
-    {
-    }
+    public function __construct(private readonly CryptoService $cryptoService) {}
 
     public function encryptPayload(?string $password, ?string $value, ?string $notes): array
     {

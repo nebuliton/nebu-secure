@@ -28,11 +28,13 @@ Artisan::command('user:create
 
     if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $this->error('Invalid e-mail address.');
+
         return self::FAILURE;
     }
 
     if (User::query()->where('email', $email)->exists()) {
         $this->error("User with email '{$email}' already exists.");
+
         return self::FAILURE;
     }
 
@@ -47,6 +49,7 @@ Artisan::command('user:create
 
     if (Str::length($password) < 8) {
         $this->error('Password must be at least 8 characters long.');
+
         return self::FAILURE;
     }
 
@@ -84,6 +87,7 @@ Artisan::command('user:set-admin
 
     if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $this->error('Invalid e-mail address.');
+
         return self::FAILURE;
     }
 
@@ -91,6 +95,7 @@ Artisan::command('user:set-admin
 
     if (! $user) {
         $this->error("User with email '{$email}' not found.");
+
         return self::FAILURE;
     }
 
@@ -99,6 +104,7 @@ Artisan::command('user:set-admin
 
     if ($user->role === $newRole) {
         $this->line("No change needed. User already has role '{$newRole}'.");
+
         return self::SUCCESS;
     }
 

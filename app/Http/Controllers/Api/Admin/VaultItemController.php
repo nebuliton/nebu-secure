@@ -16,8 +16,7 @@ class VaultItemController extends Controller
     public function __construct(
         private readonly VaultItemCryptoService $vaultItemCryptoService,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -49,7 +48,7 @@ class VaultItemController extends Controller
         $fallbackGroupId = $request->input('assigned_group_id');
         $primaryGroupId = $fallbackGroupId !== null ? (int) $fallbackGroupId : $groupIds->first();
 
-        if ($primaryGroupId !== null && !$groupIds->contains($primaryGroupId)) {
+        if ($primaryGroupId !== null && ! $groupIds->contains($primaryGroupId)) {
             $groupIds->push($primaryGroupId);
         }
 
@@ -92,7 +91,7 @@ class VaultItemController extends Controller
         $fallbackGroupId = $request->input('assigned_group_id');
         $primaryGroupId = $fallbackGroupId !== null ? (int) $fallbackGroupId : $groupIds->first();
 
-        if ($primaryGroupId !== null && !$groupIds->contains($primaryGroupId)) {
+        if ($primaryGroupId !== null && ! $groupIds->contains($primaryGroupId)) {
             $groupIds->push($primaryGroupId);
         }
 

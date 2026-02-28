@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
-    public function __construct(private readonly AuditLogService $auditLogService)
-    {
-    }
+    public function __construct(private readonly AuditLogService $auditLogService) {}
 
     public function index(): JsonResponse
     {

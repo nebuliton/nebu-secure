@@ -17,8 +17,7 @@ class VaultItemShareLinkController extends Controller
     public function __construct(
         private readonly VaultItemCryptoService $vaultItemCryptoService,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function store(Request $request, VaultItem $vaultItem): JsonResponse
     {

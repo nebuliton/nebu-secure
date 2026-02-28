@@ -48,6 +48,7 @@ class AppSettingsService
             foreach ($settings as $key => $value) {
                 if ($value === null) {
                     AppSetting::query()->where('key', $key)->delete();
+
                     continue;
                 }
 

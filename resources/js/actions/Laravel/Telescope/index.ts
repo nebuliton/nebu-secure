@@ -1,6 +1,6 @@
-import Http from './Http'
+import Http from './Http';
 const Telescope = {
     Http: Object.assign(Http, Http),
-}
+};
 
-export default Telescope
+export default Telescope;

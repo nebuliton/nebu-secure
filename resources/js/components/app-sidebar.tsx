@@ -1,5 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
-import { FolderLock, LayoutGrid, Settings, Shield, Users, UsersRound, Vault } from 'lucide-react';
+import {
+    FolderLock,
+    LayoutGrid,
+    Settings,
+    Shield,
+    Users,
+    UsersRound,
+    Vault,
+} from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -27,8 +35,16 @@ export function AppSidebar() {
               { title: 'Übersicht', href: '/admin', icon: LayoutGrid },
               { title: 'Benutzer', href: '/admin/users', icon: Users },
               { title: 'Gruppen', href: '/admin/groups', icon: UsersRound },
-              { title: 'Tresor-Einträge', href: '/admin/vault-items', icon: FolderLock },
-              { title: 'Einstellungen', href: '/admin/settings', icon: Settings },
+              {
+                  title: 'Tresor-Einträge',
+                  href: '/admin/vault-items',
+                  icon: FolderLock,
+              },
+              {
+                  title: 'Einstellungen',
+                  href: '/admin/settings',
+                  icon: Settings,
+              },
               { title: 'Mein Tresor', href: '/vault', icon: Vault },
           ]
         : [
@@ -42,7 +58,10 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={isAdmin ? '/admin' : '/dashboard'} prefetch>
+                            <Link
+                                href={isAdmin ? '/admin' : '/dashboard'}
+                                prefetch
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

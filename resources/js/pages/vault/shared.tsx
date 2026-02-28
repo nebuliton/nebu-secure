@@ -16,7 +16,10 @@ type SharedVaultPageProps = {
 export default function SharedVaultPage({ token }: SharedVaultPageProps) {
     const itemQuery = useQuery({
         queryKey: ['shared-vault-item', token],
-        queryFn: () => apiRequest<SharedVaultItem>(`/api/share-links/${encodeURIComponent(token)}`),
+        queryFn: () =>
+            apiRequest<SharedVaultItem>(
+                `/api/share-links/${encodeURIComponent(token)}`,
+            ),
         retry: false,
     });
 
@@ -37,26 +40,64 @@ export default function SharedVaultPage({ token }: SharedVaultPageProps) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {itemQuery.isLoading && <p className="text-sm text-muted-foreground">Link wird geladen...</p>}
+                        {itemQuery.isLoading && (
+                            <p className="text-sm text-muted-foreground">
+                                Link wird geladen...
+                            </p>
+                        )}
                         {itemQuery.isError && (
                             <div className="space-y-2">
                                 <Badge variant="destructive">Ungültig</Badge>
-                                <p className="text-sm text-muted-foreground">Dieser Link wurde bereits verwendet, ist abgelaufen oder existiert nicht mehr.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Dieser Link wurde bereits verwendet, ist
+                                    abgelaufen oder existiert nicht mehr.
+                                </p>
                             </div>
                         )}
                         {itemQuery.data && (
                             <div className="space-y-3 text-sm">
-                                <p><span className="font-medium">Titel:</span> {itemQuery.data.title}</p>
-                                <p><span className="font-medium">Benutzername:</span> {itemQuery.data.username ?? '-'}</p>
-                                <p><span className="font-medium">Server-IP:</span> {itemQuery.data.server_ip ?? '-'}</p>
-                                <p><span className="font-medium">URL:</span> {itemQuery.data.url ?? '-'}</p>
+                                <p>
+                                    <span className="font-medium">Titel:</span>{' '}
+                                    {itemQuery.data.title}
+                                </p>
+                                <p>
+                                    <span className="font-medium">
+                                        Benutzername:
+                                    </span>{' '}
+                                    {itemQuery.data.username ?? '-'}
+                                </p>
+                                <p>
+                                    <span className="font-medium">
+                                        Server-IP:
+                                    </span>{' '}
+                                    {itemQuery.data.server_ip ?? '-'}
+                                </p>
+                                <p>
+                                    <span className="font-medium">URL:</span>{' '}
+                                    {itemQuery.data.url ?? '-'}
+                                </p>
 
                                 {!!itemQuery.data.password && (
                                     <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                        <p className="mb-2 font-medium">Passwort</p>
+                                        <p className="mb-2 font-medium">
+                                            Passwort
+                                        </p>
                                         <div className="flex items-center gap-2">
-                                            <Input readOnly value={itemQuery.data.password} />
-                                            <Button size="icon" variant="outline" onClick={() => void copyText(itemQuery.data.password as string, 'Passwort')}>
+                                            <Input
+                                                readOnly
+                                                value={itemQuery.data.password}
+                                            />
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={() =>
+                                                    void copyText(
+                                                        itemQuery.data
+                                                            .password as string,
+                                                        'Passwort',
+                                                    )
+                                                }
+                                            >
                                                 <Copy className="size-4" />
                                             </Button>
                                         </div>
@@ -67,22 +108,53 @@ export default function SharedVaultPage({ token }: SharedVaultPageProps) {
                                     <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                         <p className="mb-2 font-medium">Wert</p>
                                         <div className="flex items-center gap-2">
-                                            <Input readOnly value={itemQuery.data.value} />
-                                            <Button size="icon" variant="outline" onClick={() => void copyText(itemQuery.data.value as string, 'Wert')}>
+                                            <Input
+                                                readOnly
+                                                value={itemQuery.data.value}
+                                            />
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={() =>
+                                                    void copyText(
+                                                        itemQuery.data
+                                                            .value as string,
+                                                        'Wert',
+                                                    )
+                                                }
+                                            >
                                                 <Copy className="size-4" />
                                             </Button>
                                         </div>
                                     </div>
                                 )}
-                                {!itemQuery.data.password && !itemQuery.data.value && (
-                                    <p className="text-xs text-muted-foreground">Kein Passwort und kein Wert hinterlegt.</p>
-                                )}
+                                {!itemQuery.data.password &&
+                                    !itemQuery.data.value && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Kein Passwort und kein Wert
+                                            hinterlegt.
+                                        </p>
+                                    )}
 
                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
                                     <p className="mb-2 font-medium">Notizen</p>
                                     <div className="flex items-center gap-2">
-                                        <Input readOnly value={itemQuery.data.notes ?? '-'} />
-                                        <Button size="icon" variant="outline" disabled={!itemQuery.data.notes} onClick={() => itemQuery.data.notes && void copyText(itemQuery.data.notes, 'Notizen')}>
+                                        <Input
+                                            readOnly
+                                            value={itemQuery.data.notes ?? '-'}
+                                        />
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            disabled={!itemQuery.data.notes}
+                                            onClick={() =>
+                                                itemQuery.data.notes &&
+                                                void copyText(
+                                                    itemQuery.data.notes,
+                                                    'Notizen',
+                                                )
+                                            }
+                                        >
                                             <Copy className="size-4" />
                                         </Button>
                                     </div>

@@ -15,16 +15,33 @@ type Props = {
 
 export default function Login({ status, canResetPassword }: Props) {
     return (
-        <AuthLayout title="Anmeldung" description="Bitte mit deinen Zugangsdaten einloggen">
+        <AuthLayout
+            title="Anmeldung"
+            description="Bitte mit deinen Zugangsdaten einloggen"
+        >
             <Head title="Anmelden" />
 
-            <Form action="/login" method="post" resetOnSuccess={['password']} className="flex flex-col gap-6">
+            <Form
+                action="/login"
+                method="post"
+                resetOnSuccess={['password']}
+                className="flex flex-col gap-6"
+            >
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">E-Mail</Label>
-                                <Input id="email" type="email" name="email" required autoFocus tabIndex={1} autoComplete="email" placeholder="name@firma.de" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    required
+                                    autoFocus
+                                    tabIndex={1}
+                                    autoComplete="email"
+                                    placeholder="name@firma.de"
+                                />
                                 <InputError message={errors.email} />
                             </div>
 
@@ -32,21 +49,45 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Passwort</Label>
                                     {canResetPassword && (
-                                        <TextLink href="/forgot-password" className="ml-auto text-sm" tabIndex={5}>
+                                        <TextLink
+                                            href="/forgot-password"
+                                            className="ml-auto text-sm"
+                                            tabIndex={5}
+                                        >
                                             Passwort vergessen?
                                         </TextLink>
                                     )}
                                 </div>
-                                <Input id="password" type="password" name="password" required tabIndex={2} autoComplete="current-password" placeholder="Passwort" />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    required
+                                    tabIndex={2}
+                                    autoComplete="current-password"
+                                    placeholder="Passwort"
+                                />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox id="remember" name="remember" tabIndex={3} />
-                                <Label htmlFor="remember">Angemeldet bleiben</Label>
+                                <Checkbox
+                                    id="remember"
+                                    name="remember"
+                                    tabIndex={3}
+                                />
+                                <Label htmlFor="remember">
+                                    Angemeldet bleiben
+                                </Label>
                             </div>
 
-                            <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing} data-test="login-button">
+                            <Button
+                                type="submit"
+                                className="mt-4 w-full"
+                                tabIndex={4}
+                                disabled={processing}
+                                data-test="login-button"
+                            >
                                 {processing && <Spinner />}
                                 Anmelden
                             </Button>
@@ -55,7 +96,11 @@ export default function Login({ status, canResetPassword }: Props) {
                 )}
             </Form>
 
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+            {status && (
+                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                    {status}
+                </div>
+            )}
         </AuthLayout>
     );
 }

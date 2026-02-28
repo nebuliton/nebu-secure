@@ -18,7 +18,8 @@ createInertiaApp({
             import.meta.glob('./pages/**/*.tsx'),
         ),
     setup({ el, App, props }) {
-        const initialName = (props.initialPage.props as { name?: unknown }).name;
+        const initialName = (props.initialPage.props as { name?: unknown })
+            .name;
         if (typeof initialName === 'string' && initialName.trim() !== '') {
             appName = initialName;
         }

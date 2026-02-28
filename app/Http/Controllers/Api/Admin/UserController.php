@@ -14,9 +14,7 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly AuditLogService $auditLogService)
-    {
-    }
+    public function __construct(private readonly AuditLogService $auditLogService) {}
 
     public function index(): JsonResponse
     {

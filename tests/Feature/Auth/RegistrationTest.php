@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -11,6 +12,10 @@ class RegistrationTest extends TestCase
 
     public function test_registration_screen_can_be_rendered()
     {
+        if (! Features::enabled(Features::registration())) {
+            $this->markTestSkipped('Registration is not enabled.');
+        }
+
         $response = $this->get(route('register'));
 
         $response->assertOk();
@@ -18,6 +23,10 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register()
     {
+        if (! Features::enabled(Features::registration())) {
+            $this->markTestSkipped('Registration is not enabled.');
+        }
+
         $response = $this->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',

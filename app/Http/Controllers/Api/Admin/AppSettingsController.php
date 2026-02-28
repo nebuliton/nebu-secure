@@ -14,8 +14,7 @@ class AppSettingsController extends Controller
     public function __construct(
         private readonly AppSettingsService $appSettingsService,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function show(): JsonResponse
     {

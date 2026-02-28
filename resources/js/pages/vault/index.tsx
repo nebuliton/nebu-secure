@@ -6,15 +6,28 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
 import type { BreadcrumbItem } from '@/types';
-import type { VaultItem, VaultReveal, VaultShareLinkResponse } from '@/types/vault';
+import type {
+    VaultItem,
+    VaultReveal,
+    VaultShareLinkResponse,
+} from '@/types/vault';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Mein Tresor', href: '/vault' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Mein Tresor', href: '/vault' },
+];
 
 export default function MyVaultPage() {
     const [search, setSearch] = useState('');
@@ -24,12 +37,19 @@ export default function MyVaultPage() {
 
     const itemsQuery = useQuery({
         queryKey: ['my-vault-items', search, scope, tag],
-        queryFn: () => apiRequest<VaultItem[]>(`/api/vault-items?search=${encodeURIComponent(search)}&scope=${scope}&tag=${encodeURIComponent(tag)}`),
+        queryFn: () =>
+            apiRequest<VaultItem[]>(
+                `/api/vault-items?search=${encodeURIComponent(search)}&scope=${scope}&tag=${encodeURIComponent(tag)}`,
+            ),
         refetchInterval: 10_000,
     });
 
     const revealMutation = useMutation({
-        mutationFn: async (itemId: number) => apiRequest<VaultReveal>(`/api/vault-items/${itemId}/reveal`, 'POST'),
+        mutationFn: async (itemId: number) =>
+            apiRequest<VaultReveal>(
+                `/api/vault-items/${itemId}/reveal`,
+                'POST',
+            ),
         onSuccess: (data) => {
             setRevealed(data);
             queryClient.invalidateQueries({ queryKey: ['my-vault-items'] });
@@ -38,7 +58,11 @@ export default function MyVaultPage() {
     });
 
     const shareMutation = useMutation({
-        mutationFn: async (itemId: number) => apiRequest<VaultShareLinkResponse>(`/api/vault-items/${itemId}/share-link`, 'POST'),
+        mutationFn: async (itemId: number) =>
+            apiRequest<VaultShareLinkResponse>(
+                `/api/vault-items/${itemId}/share-link`,
+                'POST',
+            ),
         onSuccess: async (data) => {
             await copyText(data.url, 'Einmal-Link');
             toast.success('Einmal-Link erstellt und kopiert');
@@ -61,7 +85,9 @@ export default function MyVaultPage() {
             'bg-pink-100 text-pink-800 border-pink-200',
         ];
 
-        const hash = tag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const hash = tag
+            .split('')
+            .reduce((acc, char) => acc + char.charCodeAt(0), 0);
         return palette[hash % palette.length];
     };
 
@@ -76,66 +102,169 @@ export default function MyVaultPage() {
             <div className="space-y-6 p-6">
                 <Card className="border-border/70">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-xl"><LockKeyhole className="size-5" />Meine Passwörter</CardTitle>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <LockKeyhole className="size-5" />
+                            Meine Passwörter
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid gap-3 md:grid-cols-4">
                             <div className="relative md:col-span-2">
-                                <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                                <Input className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Suche nach Titel, Benutzername, Server-IP oder URL" />
+                                <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
+                                <Input
+                                    className="pl-9"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Suche nach Titel, Benutzername, Server-IP oder URL"
+                                />
                             </div>
-                            <select className="rounded-md border border-input bg-background px-3 py-2 text-sm" value={scope} onChange={(event) => setScope(event.target.value as 'all' | 'direct' | 'group')}>
+                            <select
+                                className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={scope}
+                                onChange={(event) =>
+                                    setScope(
+                                        event.target.value as
+                                            | 'all'
+                                            | 'direct'
+                                            | 'group',
+                                    )
+                                }
+                            >
                                 <option value="all">Alle</option>
                                 <option value="direct">Direkt</option>
                                 <option value="group">Gruppe</option>
                             </select>
-                            <Input value={tag} onChange={(event) => setTag(event.target.value)} placeholder="Nach Tag filtern" />
+                            <Input
+                                value={tag}
+                                onChange={(event) => setTag(event.target.value)}
+                                placeholder="Nach Tag filtern"
+                            />
                         </div>
 
                         <div className="grid gap-3">
                             {list.map((item) => (
-                                <Dialog key={item.id} onOpenChange={(open) => { if (open) { setRevealed(null); } }}>
+                                <Dialog
+                                    key={item.id}
+                                    onOpenChange={(open) => {
+                                        if (open) {
+                                            setRevealed(null);
+                                        }
+                                    }}
+                                >
                                     <DialogTrigger asChild>
                                         <button className="w-full rounded-xl border border-border/70 bg-card p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm">
                                             <div className="flex flex-wrap items-start justify-between gap-2">
                                                 <div>
-                                                    <p className="font-medium">{item.title}</p>
-                                                    <p className="text-sm text-muted-foreground">{item.username ?? '-'} {item.server_ip ? `· ${item.server_ip}` : ''} {item.url ? `· ${item.url}` : ''}</p>
+                                                    <p className="font-medium">
+                                                        {item.title}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {item.username ?? '-'}{' '}
+                                                        {item.server_ip
+                                                            ? `· ${item.server_ip}`
+                                                            : ''}{' '}
+                                                        {item.url
+                                                            ? `· ${item.url}`
+                                                            : ''}
+                                                    </p>
                                                 </div>
                                                 <div className="flex gap-1">
-                                                    {(item.tags_json ?? []).map((itemTag) => (
-                                                        <Badge key={itemTag} className={tagColorClass(itemTag)} variant="outline">{itemTag}</Badge>
-                                                    ))}
+                                                    {(item.tags_json ?? []).map(
+                                                        (itemTag) => (
+                                                            <Badge
+                                                                key={itemTag}
+                                                                className={tagColorClass(
+                                                                    itemTag,
+                                                                )}
+                                                                variant="outline"
+                                                            >
+                                                                {itemTag}
+                                                            </Badge>
+                                                        ),
+                                                    )}
                                                 </div>
                                             </div>
                                         </button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>{item.title}</DialogTitle>
+                                            <DialogTitle>
+                                                {item.title}
+                                            </DialogTitle>
                                             <DialogDescription>
-                                                Zugangsdaten für diesen Tresor-Eintrag anzeigen und teilen.
+                                                Zugangsdaten für diesen
+                                                Tresor-Eintrag anzeigen und
+                                                teilen.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="space-y-3 text-sm">
-                                            <p><span className="font-medium">Benutzername:</span> {item.username ?? '-'}</p>
-                                            <p><span className="font-medium">Server-IP:</span> {item.server_ip ?? '-'}</p>
-                                            <p><span className="font-medium">URL:</span> {item.url ?? '-'}</p>
-                                            <p><span className="font-medium">Gruppen:</span> {((item.groups ?? []).map((group) => group.name).join(', ')) || item.assigned_group?.name || '-'}</p>
-                                            <Button className="w-full" variant="secondary" onClick={() => revealMutation.mutate(item.id)} disabled={revealMutation.isPending}>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Benutzername:
+                                                </span>{' '}
+                                                {item.username ?? '-'}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Server-IP:
+                                                </span>{' '}
+                                                {item.server_ip ?? '-'}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">
+                                                    URL:
+                                                </span>{' '}
+                                                {item.url ?? '-'}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Gruppen:
+                                                </span>{' '}
+                                                {(item.groups ?? [])
+                                                    .map((group) => group.name)
+                                                    .join(', ') ||
+                                                    item.assigned_group?.name ||
+                                                    '-'}
+                                            </p>
+                                            <Button
+                                                className="w-full"
+                                                variant="secondary"
+                                                onClick={() =>
+                                                    revealMutation.mutate(
+                                                        item.id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    revealMutation.isPending
+                                                }
+                                            >
                                                 <Eye className="mr-2 size-4" />
-                                                {revealMutation.isPending ? 'Wird entschlüsselt...' : 'Geheimdaten anzeigen'}
+                                                {revealMutation.isPending
+                                                    ? 'Wird entschlüsselt...'
+                                                    : 'Geheimdaten anzeigen'}
                                             </Button>
                                             {!!revealed?.password && (
                                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                                    <p className="mb-2 font-medium">Passwort</p>
+                                                    <p className="mb-2 font-medium">
+                                                        Passwort
+                                                    </p>
                                                     <div className="flex items-center gap-2">
-                                                        <Input readOnly value={revealed.password} />
+                                                        <Input
+                                                            readOnly
+                                                            value={
+                                                                revealed.password
+                                                            }
+                                                        />
                                                         <Button
                                                             size="icon"
                                                             variant="outline"
                                                             onClick={() => {
-                                                                void copyText(revealed.password as string, 'Passwort');
+                                                                void copyText(
+                                                                    revealed.password as string,
+                                                                    'Passwort',
+                                                                );
                                                             }}
                                                         >
                                                             <Copy className="size-4" />
@@ -145,14 +274,24 @@ export default function MyVaultPage() {
                                             )}
                                             {!!revealed?.value && (
                                                 <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                                    <p className="mb-2 font-medium">Wert</p>
+                                                    <p className="mb-2 font-medium">
+                                                        Wert
+                                                    </p>
                                                     <div className="flex items-center gap-2">
-                                                        <Input readOnly value={revealed.value} />
+                                                        <Input
+                                                            readOnly
+                                                            value={
+                                                                revealed.value
+                                                            }
+                                                        />
                                                         <Button
                                                             size="icon"
                                                             variant="outline"
                                                             onClick={() => {
-                                                                void copyText(revealed.value as string, 'Wert');
+                                                                void copyText(
+                                                                    revealed.value as string,
+                                                                    'Wert',
+                                                                );
                                                             }}
                                                         >
                                                             <Copy className="size-4" />
@@ -160,30 +299,63 @@ export default function MyVaultPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                            {revealed && !revealed.password && !revealed.value && (
-                                                <p className="text-xs text-muted-foreground">Kein Passwort und kein Wert hinterlegt.</p>
-                                            )}
+                                            {revealed &&
+                                                !revealed.password &&
+                                                !revealed.value && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Kein Passwort und kein
+                                                        Wert hinterlegt.
+                                                    </p>
+                                                )}
                                             <div className="rounded-md border border-border/70 bg-muted/30 p-3">
-                                                <p className="mb-2 font-medium">Notizen</p>
+                                                <p className="mb-2 font-medium">
+                                                    Notizen
+                                                </p>
                                                 <div className="flex items-center gap-2">
-                                                    <Input readOnly value={revealed?.notes ?? 'Ausgeblendet'} />
+                                                    <Input
+                                                        readOnly
+                                                        value={
+                                                            revealed?.notes ??
+                                                            'Ausgeblendet'
+                                                        }
+                                                    />
                                                     <Button
                                                         size="icon"
                                                         variant="outline"
                                                         onClick={() => {
-                                                            if (revealed?.notes) {
-                                                                void copyText(revealed.notes, 'Notizen');
+                                                            if (
+                                                                revealed?.notes
+                                                            ) {
+                                                                void copyText(
+                                                                    revealed.notes,
+                                                                    'Notizen',
+                                                                );
                                                             }
                                                         }}
-                                                        disabled={!revealed?.notes}
+                                                        disabled={
+                                                            !revealed?.notes
+                                                        }
                                                     >
                                                         <Copy className="size-4" />
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <Button className="w-full" variant="secondary" onClick={() => shareMutation.mutate(item.id)} disabled={shareMutation.isPending}>
+                                            <Button
+                                                className="w-full"
+                                                variant="secondary"
+                                                onClick={() =>
+                                                    shareMutation.mutate(
+                                                        item.id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    shareMutation.isPending
+                                                }
+                                            >
                                                 <Link2 className="mr-2 size-4" />
-                                                {shareMutation.isPending ? 'Einmal-Link wird erstellt...' : 'Einmal-Link zum Teilen erstellen'}
+                                                {shareMutation.isPending
+                                                    ? 'Einmal-Link wird erstellt...'
+                                                    : 'Einmal-Link zum Teilen erstellen'}
                                             </Button>
                                         </div>
                                     </DialogContent>
@@ -191,8 +363,16 @@ export default function MyVaultPage() {
                             ))}
                         </div>
 
-                        {itemsQuery.isLoading && <p className="text-sm text-muted-foreground">Tresor wird geladen...</p>}
-                        {itemsQuery.data && itemsQuery.data.length === 0 && <p className="text-sm text-muted-foreground">Noch keine Einträge zugewiesen.</p>}
+                        {itemsQuery.isLoading && (
+                            <p className="text-sm text-muted-foreground">
+                                Tresor wird geladen...
+                            </p>
+                        )}
+                        {itemsQuery.data && itemsQuery.data.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                Noch keine Einträge zugewiesen.
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
             </div>

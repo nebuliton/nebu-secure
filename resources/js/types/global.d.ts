@@ -1,5 +1,5 @@
-import type { Auth } from '@/types/auth';
 import type { AppSettings } from '@/types/app-settings';
+import type { Auth } from '@/types/auth';
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {

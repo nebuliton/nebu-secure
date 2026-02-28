@@ -23,26 +23,31 @@ Route::middleware(['auth', 'active'])->group(function (): void {
 
     Route::get('/admin', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
+
         return Inertia::render('admin/dashboard');
     })->name('admin.dashboard');
 
     Route::get('/admin/users', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
+
         return Inertia::render('admin/users');
     })->name('admin.users');
 
     Route::get('/admin/groups', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
+
         return Inertia::render('admin/groups');
     })->name('admin.groups');
 
     Route::get('/admin/vault-items', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
+
         return Inertia::render('admin/vault-items');
     })->name('admin.vault-items');
 
     Route::get('/admin/settings', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
+
         return Inertia::render('admin/settings');
     })->name('admin.settings');
 

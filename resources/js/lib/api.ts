@@ -45,7 +45,9 @@ export async function apiRequest<T>(
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            ...(xsrfToken ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfToken) } : {}),
+            ...(xsrfToken
+                ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfToken) }
+                : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
     });

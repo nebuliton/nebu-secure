@@ -15,8 +15,7 @@ class VaultItemController extends Controller
     public function __construct(
         private readonly VaultItemCryptoService $vaultItemCryptoService,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function index(VaultItemIndexRequest $request): JsonResponse
     {
