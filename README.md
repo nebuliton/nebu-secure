@@ -40,9 +40,6 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-## 🖼️ Screenshots
-
-> *Hier können Screenshots der Anwendung eingefügt werden.*
 
 ## 📦 Docker
 ```bash
