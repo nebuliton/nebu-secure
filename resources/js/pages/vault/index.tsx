@@ -14,6 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { ExternalUrlLink } from '@/components/external-url-link';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
@@ -153,26 +154,26 @@ export default function MyVaultPage() {
                                         }
                                     }}
                                 >
-                                    <DialogTrigger asChild>
-                                        <button className="w-full rounded-xl border border-border/70 bg-card p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm">
-                                            <div className="flex flex-wrap items-start justify-between gap-2">
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {item.title}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {item.username ?? '-'}{' '}
-                                                        {item.server_ip
-                                                            ? `· ${item.server_ip}`
-                                                            : ''}{' '}
-                                                        {item.url
-                                                            ? `· ${item.url}`
-                                                            : ''}
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    {(item.tags_json ?? []).map(
-                                                        (itemTag) => (
+                                    <div className="cursor-pointer rounded-xl border border-border/70 bg-card transition hover:-translate-y-0.5 hover:shadow-sm">
+                                        <DialogTrigger asChild>
+                                            <button className="w-full cursor-pointer p-4 text-left">
+                                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                                    <div>
+                                                        <p className="font-medium">
+                                                            {item.title}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {item.username ??
+                                                                '-'}{' '}
+                                                            {item.server_ip
+                                                                ? `· ${item.server_ip}`
+                                                                : ''}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        {(
+                                                            item.tags_json ?? []
+                                                        ).map((itemTag) => (
                                                             <Badge
                                                                 key={itemTag}
                                                                 className={tagColorClass(
@@ -182,12 +183,19 @@ export default function MyVaultPage() {
                                                             >
                                                                 {itemTag}
                                                             </Badge>
-                                                        ),
-                                                    )}
+                                                        ))}
+                                                    </div>
                                                 </div>
+                                            </button>
+                                        </DialogTrigger>
+                                        {item.url && (
+                                            <div className="px-4 pb-4 text-sm">
+                                                <ExternalUrlLink
+                                                    url={item.url}
+                                                />
                                             </div>
-                                        </button>
-                                    </DialogTrigger>
+                                        )}
+                                    </div>
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>
@@ -216,7 +224,9 @@ export default function MyVaultPage() {
                                                 <span className="font-medium">
                                                     URL:
                                                 </span>{' '}
-                                                {item.url ?? '-'}
+                                                <ExternalUrlLink
+                                                    url={item.url}
+                                                />
                                             </p>
                                             <p>
                                                 <span className="font-medium">

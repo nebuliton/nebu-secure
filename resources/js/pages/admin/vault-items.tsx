@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Copy, Eye, FolderKey, Link2, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ExternalUrlLink } from '@/components/external-url-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -642,7 +643,7 @@ export default function AdminVaultItemsPage() {
                                 </p>
                                 <p>
                                     <span className="font-medium">URL:</span>{' '}
-                                    {detailItem.url ?? '-'}
+                                    <ExternalUrlLink url={detailItem.url} />
                                 </p>
                                 <div className="flex gap-1">
                                     {(detailItem.tags_json ?? []).map(

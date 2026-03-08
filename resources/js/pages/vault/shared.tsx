@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import { Copy, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ExternalUrlLink } from '@/components/external-url-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,7 +75,7 @@ export default function SharedVaultPage({ token }: SharedVaultPageProps) {
                                 </p>
                                 <p>
                                     <span className="font-medium">URL:</span>{' '}
-                                    {itemQuery.data.url ?? '-'}
+                                    <ExternalUrlLink url={itemQuery.data.url} />
                                 </p>
 
                                 {!!itemQuery.data.password && (
