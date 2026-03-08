@@ -37,7 +37,7 @@ export function ExternalUrlLink({ url, className }: ExternalUrlLinkProps) {
     return (
         <a
             className={cn(
-                'cursor-pointer break-all text-blue-700 underline underline-offset-4 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300',
+                'cursor-pointer break-all font-medium text-foreground/85 underline decoration-primary/45 decoration-2 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary/70 dark:text-foreground/90',
                 className,
             )}
             href={href}
