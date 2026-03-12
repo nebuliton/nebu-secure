@@ -14,6 +14,7 @@ class VaultItem extends Model
 
     protected $fillable = [
         'title',
+        'item_type',
         'username',
         'server_ip',
         'url',
@@ -34,6 +35,8 @@ class VaultItem extends Model
         'wrapped_data_key',
         'key_version',
     ];
+
+    public const TYPES = ['login', 'api_key', 'ssh_key', 'note', 'credit_card', 'other'];
 
     protected function casts(): array
     {
@@ -84,5 +87,10 @@ class VaultItem extends Model
     public function shareLinks(): HasMany
     {
         return $this->hasMany(VaultItemShareLink::class);
+    }
+
+    public function favoritedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'vault_item_favorites')->withTimestamps();
     }
 }

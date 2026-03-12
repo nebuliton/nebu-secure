@@ -23,18 +23,18 @@ export default function TwoFactorChallenge() {
     }>(() => {
         if (showRecoveryInput) {
             return {
-                title: 'Recovery Code',
+                title: 'Wiederherstellungscode',
                 description:
-                    'Please confirm access to your account by entering one of your emergency recovery codes.',
-                toggleText: 'login using an authentication code',
+                    'Bitte bestätige den Zugriff auf dein Konto, indem du einen deiner Notfall-Wiederherstellungscodes eingibst.',
+                toggleText: 'mit Authentifizierungscode anmelden',
             };
         }
 
         return {
-            title: 'Authentication Code',
+            title: 'Authentifizierungscode',
             description:
-                'Enter the authentication code provided by your authenticator application.',
-            toggleText: 'login using a recovery code',
+                'Gib den Authentifizierungscode aus deiner Authenticator-App ein.',
+            toggleText: 'mit Wiederherstellungscode anmelden',
         };
     }, [showRecoveryInput]);
 
@@ -49,7 +49,7 @@ export default function TwoFactorChallenge() {
             title={authConfigContent.title}
             description={authConfigContent.description}
         >
-            <Head title="Two-Factor Authentication" />
+            <Head title="Zwei-Faktor-Authentifizierung" />
 
             <div className="space-y-6">
                 <Form
@@ -66,7 +66,7 @@ export default function TwoFactorChallenge() {
                                     <Input
                                         name="recovery_code"
                                         type="text"
-                                        placeholder="Enter recovery code"
+                                        placeholder="Wiederherstellungscode eingeben"
                                         autoFocus={showRecoveryInput}
                                         required
                                     />
@@ -107,11 +107,11 @@ export default function TwoFactorChallenge() {
                                 className="w-full"
                                 disabled={processing}
                             >
-                                Continue
+                                Weiter
                             </Button>
 
                             <div className="text-center text-sm text-muted-foreground">
-                                <span>or you can </span>
+                                <span>Oder </span>
                                 <button
                                     type="button"
                                     className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"

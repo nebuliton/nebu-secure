@@ -54,6 +54,7 @@ class VaultItemController extends Controller
 
         $item = VaultItem::query()->create([
             'title' => $request->string('title')->value(),
+            'item_type' => $request->string('item_type', 'login')->value(),
             'username' => $request->input('username'),
             'server_ip' => $request->string('server_ip')->value(),
             'url' => $request->input('url'),
@@ -97,6 +98,7 @@ class VaultItemController extends Controller
 
         $payload = [
             'title' => $request->string('title')->value(),
+            'item_type' => $request->string('item_type', 'login')->value(),
             'username' => $request->input('username'),
             'server_ip' => $request->string('server_ip')->value(),
             'url' => $request->input('url'),

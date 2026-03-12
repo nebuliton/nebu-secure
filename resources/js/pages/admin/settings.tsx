@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Building2, Palette, Save } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Building2, ImagePlus, Palette, Save, Trash2, Upload } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
+import { queryClient } from '@/lib/query-client';
 import type { AppSettings, BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -68,8 +69,47 @@ const toPayload = (form: SettingsForm): AppSettings => ({
     privacy_url: form.privacy_url.trim() || null,
 });
 
+async function uploadLogoFile(file: File): Promise<{ app_logo_url: string }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    // Ensure CSRF cookie
+    await fetch('/sanctum/csrf-cookie', { method: 'GET', credentials: 'include' });
+
+    const xsrfToken = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1];
+
+    const response = await fetch('/api/admin/settings/logo', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            Accept: 'application/json',
+            ...(xsrfToken
+                ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfToken) }
+                : {}),
+        },
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as {
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+        const firstError = data.errors
+            ? Object.values(data.errors).flat()[0]
+            : undefined;
+        throw new Error(firstError ?? data.message ?? 'Upload fehlgeschlagen');
+    }
+
+    return (await response.json()) as { app_logo_url: string };
+}
+
 export default function AdminSettingsPage() {
     const [formDraft, setFormDraft] = useState<SettingsForm | null>(null);
+    const logoInputRef = useRef<HTMLInputElement>(null);
 
     const settingsQuery = useQuery({
         queryKey: ['admin-settings'],
@@ -109,12 +149,49 @@ export default function AdminSettingsPage() {
             apiRequest<AppSettings>('/api/admin/settings', 'PUT', payload),
         onSuccess: (updated) => {
             setFormDraft(toForm(updated));
+            queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
             toast.success('Einstellungen gespeichert');
         },
         onError: (error: Error) => {
             toast.error(error.message);
         },
     });
+
+    const logoUploadMutation = useMutation({
+        mutationFn: uploadLogoFile,
+        onSuccess: (data) => {
+            updateField('app_logo_url', data.app_logo_url);
+            queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+            toast.success('Logo hochgeladen');
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
+    const logoDeleteMutation = useMutation({
+        mutationFn: () =>
+            apiRequest('/api/admin/settings/logo', 'DELETE'),
+        onSuccess: () => {
+            updateField('app_logo_url', '');
+            queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+            toast.success('Logo entfernt');
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
+    const handleLogoSelect = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const file = event.target.files?.[0];
+            if (file) {
+                logoUploadMutation.mutate(file);
+            }
+            event.target.value = '';
+        },
+        [logoUploadMutation],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -157,9 +234,72 @@ export default function AdminSettingsPage() {
                                     />
                                 </div>
 
+                                {/* Logo Upload Section */}
+                                <div className="space-y-2">
+                                    <Label>Logo</Label>
+                                    <input
+                                        ref={logoInputRef}
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp"
+                                        className="hidden"
+                                        onChange={handleLogoSelect}
+                                    />
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex size-16 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border/70 bg-muted/40">
+                                            {form.app_logo_url ? (
+                                                <img
+                                                    src={form.app_logo_url}
+                                                    alt="Logo"
+                                                    className="size-full object-cover"
+                                                />
+                                            ) : (
+                                                <ImagePlus className="size-6 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    logoInputRef.current?.click()
+                                                }
+                                                disabled={
+                                                    logoUploadMutation.isPending
+                                                }
+                                            >
+                                                <Upload className="mr-2 size-3.5" />
+                                                {logoUploadMutation.isPending
+                                                    ? 'Wird hochgeladen...'
+                                                    : 'Logo hochladen'}
+                                            </Button>
+                                            {form.app_logo_url && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-destructive hover:text-destructive"
+                                                    onClick={() =>
+                                                        logoDeleteMutation.mutate()
+                                                    }
+                                                    disabled={
+                                                        logoDeleteMutation.isPending
+                                                    }
+                                                >
+                                                    <Trash2 className="mr-2 size-3.5" />
+                                                    Logo entfernen
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        PNG, JPG, SVG oder WebP – max. 2 MB
+                                    </p>
+                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="app_logo_url">
-                                        Logo URL
+                                        oder Logo URL
                                     </Label>
                                     <Input
                                         id="app_logo_url"

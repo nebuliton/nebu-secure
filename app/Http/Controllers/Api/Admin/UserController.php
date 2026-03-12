@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -32,7 +33,7 @@ class UserController extends Controller
         $user = User::query()->create([
             'name' => $request->string('name')->value(),
             'email' => $request->string('email')->value(),
-            'password' => $request->string('password')->value(),
+            'password' => Hash::make($request->string('password')->value()),
             'role' => $request->string('role')->value(),
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -69,9 +70,9 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $user->update([
-            'password' => $request->string('password')->value(),
-        ]);
+        $user->forceFill([
+            'password' => Hash::make($request->string('password')->value()),
+        ])->save();
 
         $this->auditLogService->record('user_password_reset', 'user', $user->id, null, $request->user()?->id, $request);
 
@@ -84,9 +85,9 @@ class UserController extends Controller
 
         $temporaryPassword = Str::password(16, true, true, true, false);
 
-        $user->update([
-            'password' => $temporaryPassword,
-        ]);
+        $user->forceFill([
+            'password' => Hash::make($temporaryPassword),
+        ])->save();
 
         $this->auditLogService->record('user_temporary_password_issued', 'user', $user->id, null, $request->user()?->id, $request);
 

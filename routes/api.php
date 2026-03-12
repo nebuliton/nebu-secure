@@ -19,6 +19,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::prefix('/admin')->middleware('can:viewAny,App\\Models\\User')->group(function (): void {
         Route::get('settings', [AdminAppSettingsController::class, 'show']);
         Route::put('settings', [AdminAppSettingsController::class, 'update']);
+        Route::post('settings/logo', [AdminAppSettingsController::class, 'uploadLogo']);
+        Route::delete('settings/logo', [AdminAppSettingsController::class, 'deleteLogo']);
 
         Route::apiResource('users', AdminUserController::class);
         Route::patch('users/{user}/toggle-active', [AdminUserController::class, 'toggleActive']);
@@ -34,4 +36,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::get('/vault-items/{vaultItem}', [VaultItemController::class, 'show']);
     Route::post('/vault-items/{vaultItem}/reveal', [VaultItemController::class, 'reveal'])->middleware('throttle:sensitive');
     Route::post('/vault-items/{vaultItem}/share-link', [VaultItemShareLinkController::class, 'store'])->middleware('throttle:sensitive');
+    Route::post('/vault-items/{vaultItem}/toggle-favorite', [VaultItemController::class, 'toggleFavorite']);
+    Route::get('/vault-item-types', [VaultItemController::class, 'types']);
 });

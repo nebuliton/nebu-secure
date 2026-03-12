@@ -10,10 +10,10 @@ import AuthLayout from '@/layouts/auth-layout';
 export default function Register() {
     return (
         <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
+            title="Konto erstellen"
+            description="Gib deine Daten ein, um ein neues Konto zu erstellen"
         >
-            <Head title="Register" />
+            <Head title="Registrieren" />
             <Form
                 action="/register"
                 method="post"
@@ -34,7 +34,7 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder="Vollständiger Name"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -43,7 +43,7 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">E-Mail-Adresse</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -51,13 +51,13 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="name@firma.de"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">Passwort</Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -65,14 +65,14 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Password"
+                                    placeholder="Passwort"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    Confirm password
+                                    Passwort bestätigen
                                 </Label>
                                 <Input
                                     id="password_confirmation"
@@ -81,7 +81,7 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Confirm password"
+                                    placeholder="Passwort bestätigen"
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -95,14 +95,14 @@ export default function Register() {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                Konto erstellen
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
+                            Bereits registriert?{' '}
                             <TextLink href="/login" tabIndex={6}>
-                                Log in
+                                Anmelden
                             </TextLink>
                         </div>
                     </>

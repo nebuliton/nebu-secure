@@ -9,22 +9,22 @@ import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Profil',
         href: '/settings/profile',
         icon: null,
     },
     {
-        title: 'Password',
+        title: 'Passwort',
         href: '/settings/password',
         icon: null,
     },
     {
-        title: 'Two-Factor Auth',
+        title: 'Zwei-Faktor-Auth',
         href: '/settings/two-factor',
         icon: null,
     },
     {
-        title: 'Appearance',
+        title: 'Darstellung',
         href: '/settings/appearance',
         icon: null,
     },
@@ -41,8 +41,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title="Einstellungen"
+                description="Verwalte dein Profil und deine Kontoeinstellungen"
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">

@@ -24,6 +24,7 @@ import type { BreadcrumbItem } from '@/types';
 import type {
     Group,
     VaultItem,
+    VaultItemType,
     VaultReveal,
     VaultShareLinkResponse,
     VaultUser,
@@ -34,8 +35,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tresor-Einträge', href: '/admin/vault-items' },
 ];
 
+const typeLabels: Record<VaultItemType, string> = {
+    login: 'Login',
+    api_key: 'API-Key',
+    ssh_key: 'SSH-Key',
+    note: 'Notiz',
+    credit_card: 'Kreditkarte',
+    other: 'Sonstiges',
+};
+
 type ItemForm = {
     title: string;
+    item_type: string;
     username: string;
     server_ip: string;
     url: string;
@@ -49,6 +60,7 @@ type ItemForm = {
 
 const defaultForm: ItemForm = {
     title: '',
+    item_type: 'login',
     username: '',
     server_ip: '',
     url: '',
@@ -121,6 +133,7 @@ export default function AdminVaultItemsPage() {
         mutationFn: async () => {
             const payload = {
                 title: form.title,
+                item_type: form.item_type,
                 username: form.username || null,
                 server_ip: form.server_ip,
                 url: form.url || null,
@@ -208,6 +221,7 @@ export default function AdminVaultItemsPage() {
         setEditingItem(item);
         setForm({
             title: item.title,
+            item_type: item.item_type ?? 'login',
             username: item.username ?? '',
             server_ip: item.server_ip ?? '',
             url: item.url ?? '',
@@ -287,6 +301,27 @@ export default function AdminVaultItemsPage() {
                                                     }))
                                                 }
                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Typ</Label>
+                                            <select
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                value={form.item_type}
+                                                onChange={(event) =>
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        item_type:
+                                                            event.target.value,
+                                                    }))
+                                                }
+                                            >
+                                                <option value="login">Login</option>
+                                                <option value="api_key">API-Key</option>
+                                                <option value="ssh_key">SSH-Key</option>
+                                                <option value="note">Notiz</option>
+                                                <option value="credit_card">Kreditkarte</option>
+                                                <option value="other">Sonstiges</option>
+                                            </select>
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Benutzername</Label>
@@ -503,6 +538,7 @@ export default function AdminVaultItemsPage() {
                                 <thead className="bg-muted/60 text-left">
                                     <tr>
                                         <th className="px-4 py-3">Titel</th>
+                                        <th className="px-4 py-3">Typ</th>
                                         <th className="px-4 py-3">
                                             Benutzername
                                         </th>
@@ -520,6 +556,11 @@ export default function AdminVaultItemsPage() {
                                         >
                                             <td className="px-4 py-3">
                                                 {item.title}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <Badge variant="outline" className="text-xs">
+                                                    {typeLabels[item.item_type as VaultItemType] ?? item.item_type ?? 'Login'}
+                                                </Badge>
                                             </td>
                                             <td className="px-4 py-3">
                                                 {item.username ?? '-'}

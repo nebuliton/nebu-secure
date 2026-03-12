@@ -12,9 +12,12 @@ export type VaultUser = {
     groups?: Group[];
 };
 
+export type VaultItemType = 'login' | 'api_key' | 'ssh_key' | 'note' | 'credit_card' | 'other';
+
 export type VaultItem = {
     id: number;
     title: string;
+    item_type: VaultItemType;
     username: string | null;
     server_ip: string | null;
     url: string | null;
@@ -24,6 +27,7 @@ export type VaultItem = {
     groups?: Group[];
     assigned_user?: VaultUser | null;
     assigned_group?: Group | null;
+    is_favorite?: boolean;
     created_at: string;
     updated_at: string;
 };

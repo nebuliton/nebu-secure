@@ -23,6 +23,7 @@ class VaultItemController extends Controller
 
         $user = $request->user();
         $groupIds = $user->groups()->pluck('groups.id');
+        $favoriteIds = $user->favoriteVaultItems()->pluck('vault_items.id')->all();
 
         $query = VaultItem::query()
             ->with(['assignedUser:id,name,email', 'assignedGroup:id,name', 'groups:id,name'])
@@ -49,6 +50,10 @@ class VaultItemController extends Controller
             });
         }
 
+        if ($scope === 'favorites') {
+            $query->whereIn('id', $favoriteIds);
+        }
+
         if ($request->filled('search')) {
             $search = $request->string('search')->value();
             $query->where(function ($builder) use ($search): void {
@@ -64,7 +69,18 @@ class VaultItemController extends Controller
             $query->where('tags_json', 'like', "%{$tag}%");
         }
 
-        return response()->json($query->latest()->get());
+        if ($request->filled('type')) {
+            $query->where('item_type', $request->input('type'));
+        }
+
+        $items = $query->latest()->get();
+
+        // Append is_favorite flag
+        $items->each(function (VaultItem $item) use ($favoriteIds): void {
+            $item->setAttribute('is_favorite', in_array($item->id, $favoriteIds, true));
+        });
+
+        return response()->json($items);
     }
 
     public function show(Request $request, VaultItem $vaultItem): JsonResponse
@@ -83,5 +99,28 @@ class VaultItemController extends Controller
         $this->auditLogService->record('item_revealed', 'vault_item', $vaultItem->id, ['title' => $vaultItem->title], $request->user()?->id, $request);
 
         return response()->json($secret);
+    }
+
+    public function toggleFavorite(Request $request, VaultItem $vaultItem): JsonResponse
+    {
+        $this->authorize('view', $vaultItem);
+
+        $user = $request->user();
+        $exists = $user->favoriteVaultItems()->where('vault_items.id', $vaultItem->id)->exists();
+
+        if ($exists) {
+            $user->favoriteVaultItems()->detach($vaultItem->id);
+        } else {
+            $user->favoriteVaultItems()->attach($vaultItem->id);
+        }
+
+        return response()->json([
+            'is_favorite' => ! $exists,
+        ]);
+    }
+
+    public function types(): JsonResponse
+    {
+        return response()->json(VaultItem::TYPES);
     }
 }

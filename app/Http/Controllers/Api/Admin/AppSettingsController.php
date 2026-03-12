@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\AppSettingsService;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AppSettingsController extends Controller
 {
@@ -47,5 +49,67 @@ class AppSettingsController extends Controller
         );
 
         return response()->json($after);
+    }
+
+    public function uploadLogo(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        $request->validate([
+            'logo' => ['required', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
+        ]);
+
+        // Delete old logo if exists
+        $currentUrl = $this->appSettingsService->get('app_logo_url');
+        if ($currentUrl) {
+            $oldPath = str_replace('/storage/', '', parse_url($currentUrl, PHP_URL_PATH) ?? '');
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        $path = $request->file('logo')->store('logos', 'public');
+        $url = '/storage/'.$path;
+
+        $this->appSettingsService->update(['app_logo_url' => $url], $request->user()?->id);
+
+        $this->auditLogService->record(
+            'app_logo_uploaded',
+            'settings',
+            null,
+            ['path' => $path],
+            $request->user()?->id,
+            $request,
+        );
+
+        return response()->json([
+            'app_logo_url' => $url,
+        ]);
+    }
+
+    public function deleteLogo(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        $currentUrl = $this->appSettingsService->get('app_logo_url');
+        if ($currentUrl) {
+            $oldPath = str_replace('/storage/', '', parse_url($currentUrl, PHP_URL_PATH) ?? '');
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        $this->appSettingsService->update(['app_logo_url' => null], $request->user()?->id);
+
+        $this->auditLogService->record(
+            'app_logo_deleted',
+            'settings',
+            null,
+            null,
+            $request->user()?->id,
+            $request,
+        );
+
+        return response()->json(['status' => 'deleted']);
     }
 }

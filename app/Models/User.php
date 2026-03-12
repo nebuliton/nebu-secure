@@ -38,7 +38,6 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'is_active' => 'boolean',
         ];
@@ -61,6 +60,11 @@ class User extends Authenticatable
     public function directlyAssignedVaultItems(): HasMany
     {
         return $this->hasMany(VaultItem::class, 'assigned_user_id');
+    }
+
+    public function favoriteVaultItems(): BelongsToMany
+    {
+        return $this->belongsToMany(VaultItem::class, 'vault_item_favorites')->withTimestamps();
     }
 
     public function isAdmin(): bool
