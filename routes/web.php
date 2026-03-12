@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -55,5 +56,11 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         return Inertia::render('vault/index');
     })->name('vault.index');
 });
+
+if (Features::enabled(Features::resetPasswords())) {
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware(['guest:'.config('fortify.guard')])
+        ->name('password.email');
+}
 
 require __DIR__.'/settings.php';

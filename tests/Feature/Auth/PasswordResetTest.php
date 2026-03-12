@@ -30,6 +30,20 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
+    public function test_reset_password_link_can_be_requested_with_mixed_case_email(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create([
+            'email' => 'reset.user@example.com',
+        ]);
+
+        $this->post(route('password.email'), ['email' => 'Reset.User@Example.com'])
+            ->assertSessionHasNoErrors();
+
+        Notification::assertSentTo($user, ResetPassword::class);
+    }
+
     public function test_reset_password_screen_can_be_rendered()
     {
         Notification::fake();
