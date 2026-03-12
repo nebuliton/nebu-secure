@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
@@ -118,3 +119,117 @@ Artisan::command('user:set-admin
 
     return self::SUCCESS;
 })->purpose('Grant or revoke admin rights for an existing user');
+
+Artisan::command('user:delete
+    {--email= : E-Mail address of existing user}
+    {--id= : ID of existing user}
+    {--force : Skip confirmation and allow deleting the last remaining admin}
+', function () {
+    $email = trim((string) ($this->option('email') ?? ''));
+    $id = $this->option('id');
+    $force = (bool) $this->option('force');
+
+    if ($email !== '' && $id !== null) {
+        $this->error('Use either --email or --id, not both.');
+
+        return self::FAILURE;
+    }
+
+    if ($email === '' && $id === null) {
+        $email = (string) $this->ask('E-Mail');
+    }
+
+    $user = null;
+
+    if ($id !== null) {
+        if (! is_numeric($id)) {
+            $this->error('User ID must be numeric.');
+
+            return self::FAILURE;
+        }
+
+        $user = User::query()->find((int) $id);
+    } else {
+        $email = Str::lower(trim($email));
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->error('Invalid e-mail address.');
+
+            return self::FAILURE;
+        }
+
+        $user = User::query()
+            ->whereRaw('LOWER(email) = ?', [$email])
+            ->first();
+    }
+
+    if (! $user) {
+        $identifier = $id !== null ? "ID '{$id}'" : "email '{$email}'";
+        $this->error("User with {$identifier} not found.");
+
+        return self::FAILURE;
+    }
+
+    $otherAdminCount = $user->role === 'admin'
+        ? User::query()->where('role', 'admin')->whereKeyNot($user->id)->count()
+        : 0;
+
+    if ($user->role === 'admin' && $otherAdminCount === 0 && ! $force) {
+        $this->error('Refusing to delete the last remaining admin without --force.');
+
+        return self::FAILURE;
+    }
+
+    $impact = [
+        'sessions' => DB::table('sessions')->where('user_id', $user->id)->count(),
+        'api_tokens' => DB::table('personal_access_tokens')
+            ->where('tokenable_type', User::class)
+            ->where('tokenable_id', $user->id)
+            ->count(),
+        'group_memberships' => DB::table('group_user')->where('user_id', $user->id)->count(),
+        'favorites' => DB::table('vault_item_favorites')->where('user_id', $user->id)->count(),
+        'assigned_vault_items' => DB::table('vault_items')->where('assigned_user_id', $user->id)->count(),
+        'created_vault_items' => DB::table('vault_items')->where('created_by_admin_id', $user->id)->count(),
+        'share_links' => DB::table('vault_item_share_links')->where('created_by_user_id', $user->id)->count(),
+        'audit_logs' => DB::table('audit_logs')->where('actor_user_id', $user->id)->count(),
+        'app_settings_refs' => DB::table('app_settings')->where('updated_by_user_id', $user->id)->count(),
+    ];
+
+    $this->warn('Deleting this user will have the following effects:');
+    $this->line('ID: '.$user->id);
+    $this->line('Email: '.$user->email);
+    $this->line('Role: '.$user->role);
+    $this->line('Active: '.($user->is_active ? 'yes' : 'no'));
+    $this->line('Sessions removed: '.$impact['sessions']);
+    $this->line('API tokens removed: '.$impact['api_tokens']);
+    $this->line('Group memberships removed: '.$impact['group_memberships']);
+    $this->line('Favorites removed: '.$impact['favorites']);
+    $this->line('Assigned vault items unassigned: '.$impact['assigned_vault_items']);
+    $this->line('Vault items deleted via cascade: '.$impact['created_vault_items']);
+    $this->line('Share-link creator references cleared: '.$impact['share_links']);
+    $this->line('Audit-log actor references cleared: '.$impact['audit_logs']);
+    $this->line('App-setting updater references cleared: '.$impact['app_settings_refs']);
+
+    if (! $force && ! $this->confirm("Delete user '{$user->email}'?")) {
+        $this->comment('Aborted.');
+
+        return self::SUCCESS;
+    }
+
+    DB::transaction(function () use ($user): void {
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        DB::table('personal_access_tokens')
+            ->where('tokenable_type', User::class)
+            ->where('tokenable_id', $user->id)
+            ->delete();
+
+        $user->delete();
+    });
+
+    $this->info('User deleted successfully.');
+    $this->line('Deleted user ID: '.$user->id);
+    $this->line('Deleted user email: '.$user->email);
+
+    return self::SUCCESS;
+})->purpose('Delete a user and clean up related sessions/tokens');
