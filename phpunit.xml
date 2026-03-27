@@ -18,7 +18,7 @@
         </include>
     </source>
     <php>
-        <env name="APP_KEY" value=" "/>
+        <env name="APP_KEY" value="base64:v01ILv+DVHRDvreI2Grl5WCjpBUY/dqXj9jsTOC1EYQ="/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="APP_NAME" value="NebU Secure Vault"/>
