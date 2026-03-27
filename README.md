@@ -275,10 +275,35 @@ php artisan test
 # Docker-Service explizit setzen
 ./deploy.sh docker --service web
 
+# Interaktive Erstinstallation auf Debian/Ubuntu
+sudo bash ./install.sh
+
 # Passwort eines Users via Tinker zurücksetzen
 php artisan tinker
 > User::where('email','user@example.com')->first()->forceFill(['password'=>Hash::make('NeuesPasswort123!')])->save();
 ```
+
+### Interaktive Installation
+
+Mit `install.sh` kannst du eine komplette Bare-Metal-Installation auf Debian oder Ubuntu durchführen. Das Skript:
+
+- installiert Nginx, PHP 8.2, Composer, Node.js, Certbot und optionale MariaDB
+- fragt Domain, App-Pfad, Datenbank, Mailer, Admin-User und HTTPS interaktiv ab
+- erzeugt `.env`, `APP_KEY` und `VAULT_MASTER_KEYS` automatisch
+- führt `composer install`, `npm ci`, `npm run build`, Migrationen und Laravel-Caches aus
+- richtet Nginx, Scheduler, Queue-Worker und die Rechte für Dashboard-Updates ein
+
+Start:
+
+```bash
+sudo bash ./install.sh
+```
+
+Hinweise:
+
+- gedacht für klassische Server-Installationen direkt auf Debian/Ubuntu
+- nicht der bevorzugte Pfad für Docker-Deployments
+- für Dashboard-Updates vergibt das Skript automatisch Schreibrechte für den Runtime-Benutzer `www-data`
 
 ---
 

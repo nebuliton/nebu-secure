@@ -35,6 +35,7 @@ class VersionManifestService
         'Dockerfile',
         'docker-compose.yml',
         'deploy.sh',
+        'install.sh',
         'update.sh',
         'eslint.config.js',
         'phpunit.xml',
