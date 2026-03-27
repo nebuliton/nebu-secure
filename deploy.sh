@@ -169,7 +169,12 @@ run_cmd() {
 }
 
 run_frontend_build() {
-    run_cmd "Baue Frontend" npx vite build --configLoader runner
+    if [ -f "$APP_DIR/node_modules/vite/bin/vite.js" ]; then
+        run_cmd "Baue Frontend" node "$APP_DIR/node_modules/vite/bin/vite.js" build --configLoader runner
+        return
+    fi
+
+    run_cmd "Baue Frontend" npm run build
 }
 
 run_shell_cmd() {
@@ -247,6 +252,7 @@ preflight_local() {
     require_command php
 
     if [ "$DO_BUILD" -eq 1 ]; then
+        require_command node
         require_command npm
     fi
 }

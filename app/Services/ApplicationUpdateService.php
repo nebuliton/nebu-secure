@@ -795,6 +795,10 @@ class ApplicationUpdateService
             return 'Der Deploy-Benutzer kann nicht in den temporären Vite-Bereich schreiben. Dieser Release-Stand nutzt für Dashboard-Deploys jetzt den Vite Runner ohne .vite-temp. Spiele den Stand einmal manuell ein und danach laufen weitere Frontend-Updates sauberer.';
         }
 
+        if (str_contains($lowerTrimmed, 'vite: permission denied')) {
+            return 'Der Deploy-Benutzer kann die lokale Vite-Binärdatei nicht ausführen. Meist wurden in node_modules/.bin die Execute-Rechte entfernt. Dieser Release-Stand startet Vite direkt über Node, damit genau das künftig nicht mehr passiert.';
+        }
+
         return $trimmed;
     }
 

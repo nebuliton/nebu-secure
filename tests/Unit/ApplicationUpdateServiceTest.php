@@ -105,6 +105,28 @@ class ApplicationUpdateServiceTest extends TestCase
     }
 
     #[Test]
+    public function vite_binary_permission_errors_are_normalized_to_actionable_text(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $normalizeErrorMessage = Closure::bind(
+            fn (string $message): string => $this->normalizeErrorMessage($message),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($normalizeErrorMessage);
+        $this->assertSame(
+            'Der Deploy-Benutzer kann die lokale Vite-Binärdatei nicht ausführen. Meist wurden in node_modules/.bin die Execute-Rechte entfernt. Dieser Release-Stand startet Vite direkt über Node, damit genau das künftig nicht mehr passiert.',
+            $normalizeErrorMessage('sh: 1: vite: Permission denied'),
+        );
+    }
+
+    #[Test]
     public function composer_install_command_uses_no_dev_outside_local_environment(): void
     {
         $service = new ApplicationUpdateService(
