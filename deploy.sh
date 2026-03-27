@@ -12,6 +12,7 @@ DO_BUILD=1
 DO_MIGRATE=1
 DO_RELOAD=1
 NO_COLOR=0
+PLAIN_OUTPUT=0
 
 if [ -t 1 ]; then
     BOLD="$(printf '\033[1m')"
@@ -91,6 +92,7 @@ ${BOLD}Optionen${RESET}
   --skip-reload          Überspringt Cache- und Reload-Schritte
   --service NAME         Docker-Web-Service für Artisan-Kommandos (Default: web)
   --no-color             Deaktiviert farbige Ausgabe
+  --plain                Schlichte Ausgabe ohne Banner, optimiert für Logs/Dashboard
   -h, --help             Zeigt diese Hilfe
 
 ${BOLD}Umgebungsvariablen${RESET}
@@ -166,6 +168,10 @@ run_cmd() {
     "$@"
 }
 
+run_frontend_build() {
+    run_cmd "Baue Frontend" npx vite build --configLoader runner
+}
+
 run_shell_cmd() {
     description="$1"
     command_string="$2"
@@ -214,6 +220,10 @@ parse_args() {
             --no-color)
                 NO_COLOR=1
                 ;;
+            --plain)
+                PLAIN_OUTPUT=1
+                NO_COLOR=1
+                ;;
             -h|--help)
                 usage
                 exit 0
@@ -251,7 +261,7 @@ run_local() {
     preflight_local
 
     if [ "$DO_BUILD" -eq 1 ]; then
-        run_cmd "Baue Frontend" npm run build
+        run_frontend_build
     else
         warn "Build übersprungen"
     fi
@@ -312,7 +322,9 @@ fi
 cd "$APP_DIR"
 START_TS="$(date '+%s' 2>/dev/null || printf '0')"
 
-show_banner
+if [ "$PLAIN_OUTPUT" -eq 0 ]; then
+    show_banner
+fi
 info "Starte Deploy-Workflow"
 show_summary
 

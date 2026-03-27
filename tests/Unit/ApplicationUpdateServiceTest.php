@@ -61,6 +61,28 @@ class ApplicationUpdateServiceTest extends TestCase
     }
 
     #[Test]
+    public function vite_temp_permission_errors_are_normalized_to_actionable_text(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $normalizeErrorMessage = Closure::bind(
+            fn (string $message): string => $this->normalizeErrorMessage($message),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($normalizeErrorMessage);
+        $this->assertSame(
+            'Der Deploy-Benutzer kann nicht in den temporären Vite-Bereich schreiben. Dieser Release-Stand nutzt für Dashboard-Deploys jetzt den Vite Runner ohne .vite-temp. Spiele den Stand einmal manuell ein und danach laufen weitere Frontend-Updates sauberer.',
+            $normalizeErrorMessage("Error: EACCES: permission denied, open '/var/www/nebu-secure/node_modules/.vite-temp/vite.config.ts.timestamp-123.mjs'"),
+        );
+    }
+
+    #[Test]
     public function composer_install_command_uses_no_dev_outside_local_environment(): void
     {
         $service = new ApplicationUpdateService(

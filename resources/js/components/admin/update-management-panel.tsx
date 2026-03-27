@@ -506,7 +506,7 @@ export default function UpdateManagementPanel() {
                                     </div>
                                 )}
 
-                                <pre className="max-h-[520px] overflow-auto rounded-2xl border border-border/60 bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+                                <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-border/60 bg-slate-950/95 p-4 text-xs leading-6 text-slate-100">
                                     {activeRun.log_output || 'Keine Logs vorhanden.'}
                                 </pre>
                             </>

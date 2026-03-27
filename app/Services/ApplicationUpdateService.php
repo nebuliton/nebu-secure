@@ -279,7 +279,7 @@ class ApplicationUpdateService
             $this->runLoggedCommand(
                 $run,
                 'Führe Deploy-Skript aus',
-                ['bash', self::DEPLOY_SCRIPT],
+                ['bash', self::DEPLOY_SCRIPT, '--plain'],
                 $output,
                 1800,
             );
@@ -318,19 +318,21 @@ class ApplicationUpdateService
             $summary = $exception->getMessage() !== ''
                 ? $this->normalizeErrorMessage($exception->getMessage())
                 : 'Das Update ist fehlgeschlagen.';
+            $summaryLine = $this->singleLine($summary);
 
-            $this->appendLog($run, "Fehler: {$summary}", $output);
+            $this->appendLog($run, 'Update fehlgeschlagen.', $output);
+            $this->appendLog($run, "Zusammenfassung: {$summaryLine}", $output);
             $this->finishRun(
                 $run,
                 'failed',
-                $summary,
+                $summaryLine,
                 is_array($run->changed_files_json) ? $run->changed_files_json : [],
                 $output,
             );
 
             return [
                 'status' => 'failed',
-                'message' => $summary,
+                'message' => $summaryLine,
                 'run' => $this->formatRunDetail($run->fresh()),
                 'status_snapshot' => $this->status(),
             ];
@@ -496,9 +498,20 @@ class ApplicationUpdateService
         $this->appendLog($run, "Schritt: {$description}", $output);
         $this->appendLog($run, '$ '.$this->commandToString($command), $output);
 
-        $result = $this->runCommand($command, $timeout);
+        try {
+            $result = $this->runCommand($command, $timeout);
+        } catch (\Throwable $exception) {
+            $this->appendLogBlock(
+                $run,
+                $this->outputLines($exception->getMessage()),
+                $output,
+            );
+
+            throw $exception;
+        }
+
         if ($result !== '') {
-            $this->appendLogBlock($run, preg_split('/\r\n|\r|\n/', $result) ?: [], $output);
+            $this->appendLogBlock($run, $this->outputLines($result), $output);
         }
 
         return $result;
@@ -532,8 +545,8 @@ class ApplicationUpdateService
             );
         }
 
-        $stdOut = trim($process->getOutput());
-        $stdErr = trim($process->getErrorOutput());
+        $stdOut = trim($this->stripAnsi($process->getOutput()));
+        $stdErr = trim($this->stripAnsi($process->getErrorOutput()));
         $combinedOutput = trim(implode(PHP_EOL, array_filter([$stdOut, $stdErr])));
 
         if (! $process->isSuccessful()) {
@@ -726,6 +739,7 @@ class ApplicationUpdateService
     private function normalizeErrorMessage(string $message): string
     {
         $trimmed = trim($message);
+        $lowerTrimmed = strtolower($trimmed);
 
         if ($trimmed === '') {
             return 'Unbekannter Fehler beim Update.';
@@ -762,6 +776,13 @@ class ApplicationUpdateService
             && str_contains($trimmed, '.sh]')
         ) {
             return 'Die Live-Instanz nutzt noch einen älteren Update-Validator und erkennt das neue Root-Skript in version.json nicht. Spiele diesen Stand einmal manuell ein; danach können Shell-Skripte wie install.sh regulär über das Update-System freigegeben werden.';
+        }
+
+        if (
+            str_contains($lowerTrimmed, '.vite-temp')
+            && str_contains($lowerTrimmed, 'permission denied')
+        ) {
+            return 'Der Deploy-Benutzer kann nicht in den temporären Vite-Bereich schreiben. Dieser Release-Stand nutzt für Dashboard-Deploys jetzt den Vite Runner ohne .vite-temp. Spiele den Stand einmal manuell ein und danach laufen weitere Frontend-Updates sauberer.';
         }
 
         return $trimmed;
@@ -849,5 +870,31 @@ class ApplicationUpdateService
             static fn (string $part): string => str_contains($part, ' ') ? '"'.$part.'"' : $part,
             $command,
         ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function outputLines(string $output): array
+    {
+        return array_values(
+            array_filter(
+                array_map(
+                    static fn (string $line): string => rtrim($line),
+                    preg_split('/\r\n|\r|\n/', $output) ?: [],
+                ),
+                static fn (string $line): bool => $line !== '',
+            ),
+        );
+    }
+
+    private function stripAnsi(string $value): string
+    {
+        return (string) preg_replace('/\e\[[\d;?]*[ -\/]*[@-~]/', '', $value);
+    }
+
+    private function singleLine(string $value): string
+    {
+        return trim((string) preg_replace('/\s+/', ' ', $value));
     }
 }
