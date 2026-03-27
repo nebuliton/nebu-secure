@@ -169,12 +169,32 @@ run_cmd() {
 }
 
 run_frontend_build() {
+    repair_node_tool_permissions
+
     if [ -f "$APP_DIR/node_modules/vite/bin/vite.js" ]; then
         run_cmd "Baue Frontend" node "$APP_DIR/node_modules/vite/bin/vite.js" build --configLoader runner
         return
     fi
 
     run_cmd "Baue Frontend" npm run build
+}
+
+repair_node_tool_permissions() {
+    if [ ! -d "$APP_DIR/node_modules" ]; then
+        return
+    fi
+
+    if [ -d "$APP_DIR/node_modules/.bin" ]; then
+        find "$APP_DIR/node_modules/.bin" -type f -exec chmod 755 {} \;
+    fi
+
+    if [ -f "$APP_DIR/node_modules/vite/bin/vite.js" ]; then
+        chmod 755 "$APP_DIR/node_modules/vite/bin/vite.js"
+    fi
+
+    if [ -d "$APP_DIR/node_modules/@esbuild" ]; then
+        find "$APP_DIR/node_modules/@esbuild" -path '*/bin/esbuild' -type f -exec chmod 755 {} \;
+    fi
 }
 
 run_shell_cmd() {

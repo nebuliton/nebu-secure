@@ -127,6 +127,28 @@ class ApplicationUpdateServiceTest extends TestCase
     }
 
     #[Test]
+    public function esbuild_binary_permission_errors_are_normalized_to_actionable_text(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $normalizeErrorMessage = Closure::bind(
+            fn (string $message): string => $this->normalizeErrorMessage($message),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($normalizeErrorMessage);
+        $this->assertSame(
+            'Der Deploy-Benutzer kann die lokale esbuild-Binärdatei nicht ausführen. Meist wurden in node_modules die Execute-Rechte entfernt. Dieser Release-Stand setzt die Rechte der Build-Werkzeuge vor dem Frontend-Build automatisch neu.',
+            $normalizeErrorMessage("Error: The service was stopped: spawn /var/www/nebu-secure/node_modules/@esbuild/linux-x64/bin/esbuild EACCES"),
+        );
+    }
+
+    #[Test]
     public function composer_install_command_uses_no_dev_outside_local_environment(): void
     {
         $service = new ApplicationUpdateService(

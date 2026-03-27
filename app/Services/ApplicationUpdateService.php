@@ -799,6 +799,13 @@ class ApplicationUpdateService
             return 'Der Deploy-Benutzer kann die lokale Vite-Binärdatei nicht ausführen. Meist wurden in node_modules/.bin die Execute-Rechte entfernt. Dieser Release-Stand startet Vite direkt über Node, damit genau das künftig nicht mehr passiert.';
         }
 
+        if (
+            str_contains($lowerTrimmed, 'node_modules/@esbuild/')
+            && str_contains($lowerTrimmed, 'eacces')
+        ) {
+            return 'Der Deploy-Benutzer kann die lokale esbuild-Binärdatei nicht ausführen. Meist wurden in node_modules die Execute-Rechte entfernt. Dieser Release-Stand setzt die Rechte der Build-Werkzeuge vor dem Frontend-Build automatisch neu.';
+        }
+
         return $trimmed;
     }
 
