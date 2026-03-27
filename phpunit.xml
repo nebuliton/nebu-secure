@@ -18,8 +18,10 @@
         </include>
     </source>
     <php>
+        <env name="APP_KEY" value="base64:3tjzNqN3B5zK+A2SqgO9xEYT0LkI4J69qAHL9FazHMg="/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="APP_NAME" value="NebU Secure Vault"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
@@ -31,5 +33,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="VAULT_MASTER_KEYS" value="1:base64:keJcMltzH3CtgjBPlAfw1tRIyGwrJffVT/7d9pE3XVc="/>
+        <env name="VAULT_CURRENT_KEY_VERSION" value="1"/>
     </php>
 </phpunit>

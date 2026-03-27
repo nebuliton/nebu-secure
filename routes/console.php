@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
@@ -48,8 +49,8 @@ Artisan::command('user:create
         $password = (string) $this->secret('Password');
     }
 
-    if (Str::length($password) < 8) {
-        $this->error('Password must be at least 8 characters long.');
+    if (Str::length($password) < 12) {
+        $this->error('Password must be at least 12 characters long.');
 
         return self::FAILURE;
     }
@@ -60,16 +61,26 @@ Artisan::command('user:create
     $user = User::query()->create([
         'name' => $name,
         'email' => $email,
-        'password' => $password,
+        'password' => Hash::make($password),
         'role' => $isAdmin ? 'admin' : 'user',
         'is_active' => $isActive,
     ]);
 
     $this->info('User created successfully.');
-    $this->line('ID: '.$user->id);
-    $this->line('Email: '.$user->email);
-    $this->line('Role: '.$user->role);
-    $this->line('Active: '.($user->is_active ? 'yes' : 'no'));
+    $this->table(
+        ['ID', 'Name', 'E-Mail', 'Role', 'Active'],
+        [[
+            $user->id,
+            $user->name,
+            $user->email,
+            $user->role,
+            $user->is_active ? 'yes' : 'no',
+        ]],
+    );
+
+    if (! $user->is_active) {
+        $this->warn('The user is inactive and cannot log in until activated.');
+    }
 
     return self::SUCCESS;
 })->purpose('Create a user from CLI (email, password, admin flag)');
@@ -113,9 +124,15 @@ Artisan::command('user:set-admin
     $user->save();
 
     $this->info($revoke ? 'Admin rights removed.' : 'Admin rights granted.');
-    $this->line('ID: '.$user->id);
-    $this->line('Email: '.$user->email);
-    $this->line('Role: '.$user->role);
+    $this->table(
+        ['ID', 'Name', 'E-Mail', 'Role'],
+        [[
+            $user->id,
+            $user->name,
+            $user->email,
+            $user->role,
+        ]],
+    );
 
     return self::SUCCESS;
 })->purpose('Grant or revoke admin rights for an existing user');
@@ -196,19 +213,30 @@ Artisan::command('user:delete
     ];
 
     $this->warn('Deleting this user will have the following effects:');
-    $this->line('ID: '.$user->id);
-    $this->line('Email: '.$user->email);
-    $this->line('Role: '.$user->role);
-    $this->line('Active: '.($user->is_active ? 'yes' : 'no'));
-    $this->line('Sessions removed: '.$impact['sessions']);
-    $this->line('API tokens removed: '.$impact['api_tokens']);
-    $this->line('Group memberships removed: '.$impact['group_memberships']);
-    $this->line('Favorites removed: '.$impact['favorites']);
-    $this->line('Assigned vault items unassigned: '.$impact['assigned_vault_items']);
-    $this->line('Vault items deleted via cascade: '.$impact['created_vault_items']);
-    $this->line('Share-link creator references cleared: '.$impact['share_links']);
-    $this->line('Audit-log actor references cleared: '.$impact['audit_logs']);
-    $this->line('App-setting updater references cleared: '.$impact['app_settings_refs']);
+    $this->table(
+        ['Field', 'Value'],
+        [
+            ['ID', (string) $user->id],
+            ['Name', $user->name],
+            ['E-Mail', $user->email],
+            ['Role', $user->role],
+            ['Active', $user->is_active ? 'yes' : 'no'],
+        ],
+    );
+    $this->table(
+        ['Impact', 'Count'],
+        [
+            ['Sessions removed', (string) $impact['sessions']],
+            ['API tokens removed', (string) $impact['api_tokens']],
+            ['Group memberships removed', (string) $impact['group_memberships']],
+            ['Favorites removed', (string) $impact['favorites']],
+            ['Assigned vault items unassigned', (string) $impact['assigned_vault_items']],
+            ['Vault items deleted via cascade', (string) $impact['created_vault_items']],
+            ['Share-link creator references cleared', (string) $impact['share_links']],
+            ['Audit-log actor references cleared', (string) $impact['audit_logs']],
+            ['App-setting updater references cleared', (string) $impact['app_settings_refs']],
+        ],
+    );
 
     if (! $force && ! $this->confirm("Delete user '{$user->email}'?")) {
         $this->comment('Aborted.');
@@ -228,8 +256,10 @@ Artisan::command('user:delete
     });
 
     $this->info('User deleted successfully.');
-    $this->line('Deleted user ID: '.$user->id);
-    $this->line('Deleted user email: '.$user->email);
+    $this->table(
+        ['Deleted user ID', 'Deleted user E-Mail'],
+        [[(string) $user->id, $user->email]],
+    );
 
     return self::SUCCESS;
 })->purpose('Delete a user and clean up related sessions/tokens');

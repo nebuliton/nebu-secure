@@ -69,4 +69,39 @@ class EmailNormalizationTest extends TestCase
             'email' => 'new.user@example.com',
         ]);
     }
+
+    public function test_admin_created_user_can_authenticate_with_the_assigned_password(): void
+    {
+        $this->withoutMiddleware(ValidateCsrfToken::class);
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $password = 'VerySecurePass123!';
+
+        $response = $this
+            ->actingAs($admin)
+            ->postJson('/api/admin/users', [
+                'name' => 'Created By Admin',
+                'email' => 'Created.By.Admin@Example.com',
+                'password' => $password,
+                'role' => 'user',
+                'is_active' => true,
+            ]);
+
+        $response->assertCreated();
+
+        auth()->guard('web')->logout();
+        auth()->forgetGuards();
+
+        $loginResponse = $this->post(route('login.store'), [
+            'email' => 'created.by.admin@example.com',
+            'password' => $password,
+        ]);
+
+        $this->assertAuthenticated();
+        $loginResponse->assertRedirect(route('dashboard', absolute: false));
+    }
 }

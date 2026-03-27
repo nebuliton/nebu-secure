@@ -232,7 +232,7 @@ nebu-secure/
 
 ### Weitere Sicherheitsmaßnahmen
 
-- ✅ Rate Limiting auf Login (10/min) und 2FA (8/min)
+- ✅ Rate Limiting auf Login (5/min) und 2FA (8/min)
 - ✅ Passwortrichtlinien (min. 12 Zeichen, Groß-/Kleinbuchstaben, Zahlen, Sonderzeichen)
 - ✅ CSRF-Schutz auf allen Formularen
 - ✅ Account-Deaktivierung durch Admins
@@ -262,6 +262,18 @@ composer lint
 
 # Tests ausführen
 php artisan test
+
+# Build + Migrate + Reload lokal
+./deploy.sh
+
+# Lokal ohne neuen Frontend-Build
+./deploy.sh --skip-build
+
+# Build + Migrate + Reload mit Docker Compose
+./deploy.sh docker
+
+# Docker-Service explizit setzen
+./deploy.sh docker --service web
 
 # Passwort eines Users via Tinker zurücksetzen
 php artisan tinker

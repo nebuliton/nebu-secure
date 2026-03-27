@@ -1,6 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Search, ShieldPlus, Trash2, UserCog } from 'lucide-react';
+import { Copy, Search, ShieldPlus, Trash2, UserCog } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +10,14 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useClipboard } from '@/hooks/use-clipboard';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
@@ -30,7 +32,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 type UserPayload = {
     name: string;
     email: string;
-    password?: string;
+    password: string;
     role: 'admin' | 'user';
     is_active: boolean;
 };
@@ -48,7 +50,21 @@ export default function AdminUsersPage() {
     const [search, setSearch] = useState('');
     const [editingUser, setEditingUser] = useState<VaultUser | null>(null);
     const [form, setForm] = useState<UserPayload>(defaultForm);
+    const [resetTarget, setResetTarget] = useState<VaultUser | null>(null);
+    const [resetPassword, setResetPassword] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<VaultUser | null>(null);
+    const [temporaryPassword, setTemporaryPassword] = useState<{
+        user: VaultUser;
+        password: string;
+    } | null>(null);
+    const [copiedText, copyToClipboard] = useClipboard();
     const { auth } = usePage<{ auth: { user: { id: number } | null } }>().props;
+
+    const closeEditor = () => {
+        setOpen(false);
+        setEditingUser(null);
+        setForm(defaultForm);
+    };
 
     const usersQuery = useQuery({
         queryKey: ['admin-users'],
@@ -68,23 +84,29 @@ export default function AdminUsersPage() {
 
     const saveUserMutation = useMutation({
         mutationFn: async (payload: UserPayload) => {
+            const normalized = {
+                name: payload.name.trim(),
+                email: payload.email.trim(),
+                role: payload.role,
+                is_active: payload.is_active,
+            };
+
             if (editingUser) {
                 return apiRequest<VaultUser>(
                     `/api/admin/users/${editingUser.id}`,
                     'PUT',
-                    payload,
+                    normalized,
                 );
             }
 
-            return apiRequest<VaultUser>('/api/admin/users', 'POST', payload);
+            return apiRequest<VaultUser>('/api/admin/users', 'POST', {
+                ...normalized,
+                password: payload.password,
+            });
         },
         onSuccess: () => {
-            toast.success(
-                editingUser ? 'Benutzer aktualisiert' : 'Benutzer erstellt',
-            );
-            setOpen(false);
-            setEditingUser(null);
-            setForm(defaultForm);
+            toast.success(editingUser ? 'Benutzer aktualisiert' : 'Benutzer erstellt');
+            closeEditor();
             queryClient.invalidateQueries({ queryKey: ['admin-users'] });
         },
         onError: (error: Error) => toast.error(error.message),
@@ -101,27 +123,23 @@ export default function AdminUsersPage() {
     });
 
     const deleteUserMutation = useMutation({
-        mutationFn: async (userId: number) =>
-            apiRequest(`/api/admin/users/${userId}`, 'DELETE'),
+        mutationFn: async (userId: number) => apiRequest(`/api/admin/users/${userId}`, 'DELETE'),
         onSuccess: () => {
             toast.success('Benutzer gelöscht');
+            setDeleteTarget(null);
             queryClient.invalidateQueries({ queryKey: ['admin-users'] });
         },
         onError: (error: Error) => toast.error(error.message),
     });
 
     const resetPasswordMutation = useMutation({
-        mutationFn: async ({
-            user,
-            password,
-        }: {
-            user: VaultUser;
-            password: string;
-        }) =>
-            apiRequest(`/api/admin/users/${user.id}/reset-password`, 'POST', {
-                password,
-            }),
-        onSuccess: () => toast.success('Passwort wurde zurückgesetzt'),
+        mutationFn: async ({ user, password }: { user: VaultUser; password: string }) =>
+            apiRequest(`/api/admin/users/${user.id}/reset-password`, 'POST', { password }),
+        onSuccess: () => {
+            toast.success('Passwort wurde zurückgesetzt');
+            setResetTarget(null);
+            setResetPassword('');
+        },
         onError: (error: Error) => toast.error(error.message),
     });
 
@@ -131,11 +149,8 @@ export default function AdminUsersPage() {
                 `/api/admin/users/${user.id}/issue-temporary-password`,
                 'POST',
             ),
-        onSuccess: (data) => {
-            window.prompt(
-                'Temporäres Passwort (jetzt kopieren):',
-                data.password,
-            );
+        onSuccess: (data, user) => {
+            setTemporaryPassword({ user, password: data.password });
             toast.success('Temporäres Passwort wurde gesetzt');
         },
         onError: (error: Error) => toast.error(error.message),
@@ -152,6 +167,7 @@ export default function AdminUsersPage() {
         setForm({
             name: user.name,
             email: user.email,
+            password: '',
             role: user.role,
             is_active: user.is_active,
         });
@@ -169,8 +185,7 @@ export default function AdminUsersPage() {
                             Benutzerverwaltung
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">
-                            Konten anlegen, Rollen steuern, Zugriff sperren und
-                            Benutzer entfernen.
+                            Konten anlegen, Rollen steuern und sensible Aktionen sauber bestätigen.
                         </p>
                     </CardHeader>
                 </Card>
@@ -179,16 +194,19 @@ export default function AdminUsersPage() {
                     <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="relative w-full md:max-w-sm">
                             <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
-                            <Input
-                                className="pl-9"
-                                placeholder="Suche nach Name, E-Mail oder Rolle"
-                                value={search}
-                                onChange={(event) =>
-                                    setSearch(event.target.value)
-                                }
-                            />
+                            <Input className="pl-9" placeholder="Suche nach Name, E-Mail oder Rolle" value={search} onChange={(event) => setSearch(event.target.value)} />
                         </div>
-                        <Dialog open={open} onOpenChange={setOpen}>
+
+                        <Dialog
+                            open={open}
+                            onOpenChange={(nextOpen) => {
+                                if (!nextOpen) {
+                                    closeEditor();
+                                    return;
+                                }
+                                setOpen(true);
+                            }}
+                        >
                             <DialogTrigger asChild>
                                 <Button onClick={onCreateClick}>
                                     <ShieldPlus className="mr-2 size-4" />
@@ -197,114 +215,47 @@ export default function AdminUsersPage() {
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>
-                                        {editingUser
-                                            ? 'Benutzer bearbeiten'
-                                            : 'Benutzer erstellen'}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        Benutzerkonto mit Rolle und Status
-                                        verwalten.
-                                    </DialogDescription>
+                                    <DialogTitle>{editingUser ? 'Benutzer bearbeiten' : 'Benutzer erstellen'}</DialogTitle>
+                                    <DialogDescription>Konto, Rolle und Aktivstatus verwalten.</DialogDescription>
                                 </DialogHeader>
-                                <form
-                                    className="space-y-4"
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        saveUserMutation.mutate(form);
-                                    }}
-                                >
+                                <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); saveUserMutation.mutate(form); }}>
                                     <div className="space-y-2">
-                                        <Label>Name</Label>
-                                        <Input
-                                            value={form.name}
-                                            onChange={(event) =>
-                                                setForm((prev) => ({
-                                                    ...prev,
-                                                    name: event.target.value,
-                                                }))
-                                            }
-                                            required
-                                        />
+                                        <Label htmlFor="name">Name</Label>
+                                        <Input id="name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>E-Mail</Label>
-                                        <Input
-                                            type="email"
-                                            value={form.email}
-                                            onChange={(event) =>
-                                                setForm((prev) => ({
-                                                    ...prev,
-                                                    email: event.target.value,
-                                                }))
-                                            }
-                                            required
-                                        />
+                                        <Label htmlFor="email">E-Mail</Label>
+                                        <Input id="email" type="email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} required />
                                     </div>
                                     {!editingUser && (
                                         <div className="space-y-2">
-                                            <Label>Passwort</Label>
-                                            <Input
-                                                type="password"
-                                                value={form.password}
-                                                onChange={(event) =>
-                                                    setForm((prev) => ({
-                                                        ...prev,
-                                                        password:
-                                                            event.target.value,
-                                                    }))
-                                                }
-                                                required
-                                            />
+                                            <Label htmlFor="password">Passwort</Label>
+                                            <Input id="password" type="password" minLength={12} value={form.password} onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))} required />
+                                            <p className="text-xs text-muted-foreground">Mindestens 12 Zeichen.</p>
                                         </div>
                                     )}
                                     <div className="space-y-2">
-                                        <Label>Rolle</Label>
-                                        <select
-                                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={form.role}
-                                            onChange={(event) =>
-                                                setForm((prev) => ({
-                                                    ...prev,
-                                                    role: event.target.value as
-                                                        | 'admin'
-                                                        | 'user',
-                                                }))
-                                            }
-                                        >
-                                            <option value="user">
-                                                Benutzer
-                                            </option>
+                                        <Label htmlFor="role">Rolle</Label>
+                                        <select id="role" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.role} onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value as 'admin' | 'user' }))}>
+                                            <option value="user">Benutzer</option>
                                             <option value="admin">Admin</option>
                                         </select>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label>Aktiv</Label>
-                                        <input
-                                            type="checkbox"
-                                            checked={form.is_active}
-                                            onChange={(event) =>
-                                                setForm((prev) => ({
-                                                    ...prev,
-                                                    is_active:
-                                                        event.target.checked,
-                                                }))
-                                            }
-                                        />
+                                    <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
+                                        <div>
+                                            <Label htmlFor="is-active">Aktiv</Label>
+                                            <p className="text-xs text-muted-foreground">Deaktivierte Konten können sich nicht anmelden.</p>
+                                        </div>
+                                        <input id="is-active" type="checkbox" checked={form.is_active} onChange={(event) => setForm((prev) => ({ ...prev, is_active: event.target.checked }))} />
                                     </div>
-                                    <Button
-                                        className="w-full"
-                                        type="submit"
-                                        disabled={saveUserMutation.isPending}
-                                    >
-                                        {saveUserMutation.isPending
-                                            ? 'Speichern...'
-                                            : 'Speichern'}
+                                    <Button className="w-full" type="submit" disabled={saveUserMutation.isPending}>
+                                        {saveUserMutation.isPending ? 'Speichern...' : 'Speichern'}
                                     </Button>
                                 </form>
                             </DialogContent>
                         </Dialog>
                     </CardHeader>
+
                     <CardContent>
                         <div className="overflow-x-auto rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm">
                             <table className="w-full text-sm">
@@ -317,143 +268,114 @@ export default function AdminUsersPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredUsers.map((user) => (
-                                        <tr
-                                            key={user.id}
-                                            className="border-t border-border/50 align-top"
-                                        >
-                                            <td className="px-4 py-3">
-                                                <p className="font-medium">
-                                                    {user.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {user.email}
-                                                </p>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Badge
-                                                    variant={
-                                                        user.role === 'admin'
-                                                            ? 'default'
-                                                            : 'secondary'
-                                                    }
-                                                >
-                                                    {user.role === 'admin'
-                                                        ? 'Admin'
-                                                        : 'Benutzer'}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Badge
-                                                    variant={
-                                                        user.is_active
-                                                            ? 'secondary'
-                                                            : 'outline'
-                                                    }
-                                                >
-                                                    {user.is_active
-                                                        ? 'Aktiv'
-                                                        : 'Deaktiviert'}
-                                                </Badge>
-                                            </td>
-                                            <td className="flex flex-wrap gap-2 px-4 py-3">
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        onEditClick(user)
-                                                    }
-                                                >
-                                                    Bearbeiten
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        toggleUserMutation.mutate(
-                                                            user,
-                                                        )
-                                                    }
-                                                >
-                                                    {user.is_active
-                                                        ? 'Deaktivieren'
-                                                        : 'Aktivieren'}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        const password =
-                                                            window.prompt(
-                                                                'Neues Passwort eingeben (mind. 12 Zeichen):',
-                                                            );
-
-                                                        if (!password) {
-                                                            return;
-                                                        }
-
-                                                        resetPasswordMutation.mutate(
-                                                            { user, password },
-                                                        );
-                                                    }}
-                                                >
-                                                    Passwort zurücksetzen
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        issueTemporaryPasswordMutation.mutate(
-                                                            user,
-                                                        )
-                                                    }
-                                                >
-                                                    Temp-Passwort anzeigen
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    disabled={
-                                                        auth.user?.id ===
-                                                        user.id
-                                                    }
-                                                    onClick={() => {
-                                                        const confirmed =
-                                                            window.confirm(
-                                                                `Benutzer "${user.name}" wirklich löschen?`,
-                                                            );
-
-                                                        if (!confirmed) {
-                                                            return;
-                                                        }
-
-                                                        deleteUserMutation.mutate(
-                                                            user.id,
-                                                        );
-                                                    }}
-                                                >
-                                                    <Trash2 className="mr-1 size-4" />
-                                                    Löschen
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {filteredUsers.map((user) => {
+                                        const isCurrentUser = auth.user?.id === user.id;
+                                        return (
+                                            <tr key={user.id} className="border-t border-border/50 align-top">
+                                                <td className="px-4 py-3">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <p className="font-medium">{user.name}</p>
+                                                        {isCurrentUser && <Badge variant="outline">Du</Badge>}
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role === 'admin' ? 'Admin' : 'Benutzer'}</Badge>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Badge variant={user.is_active ? 'secondary' : 'outline'}>{user.is_active ? 'Aktiv' : 'Deaktiviert'}</Badge>
+                                                </td>
+                                                <td className="flex flex-wrap gap-2 px-4 py-3">
+                                                    <Button variant="secondary" size="sm" onClick={() => onEditClick(user)}>Bearbeiten</Button>
+                                                    <Button variant="outline" size="sm" disabled={isCurrentUser} onClick={() => toggleUserMutation.mutate(user)}>
+                                                        {user.is_active ? 'Deaktivieren' : 'Aktivieren'}
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => { setResetTarget(user); setResetPassword(''); }}>Passwort zurücksetzen</Button>
+                                                    <Button variant="outline" size="sm" onClick={() => issueTemporaryPasswordMutation.mutate(user)}>Temp-Passwort anzeigen</Button>
+                                                    <Button variant="destructive" size="sm" disabled={isCurrentUser} onClick={() => setDeleteTarget(user)}>
+                                                        <Trash2 className="mr-1 size-4" />
+                                                        Löschen
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
-                        {usersQuery.isLoading && (
-                            <p className="pt-4 text-sm text-muted-foreground">
-                                Benutzer werden geladen...
-                            </p>
-                        )}
-                        {usersQuery.data && filteredUsers.length === 0 && (
-                            <p className="pt-4 text-sm text-muted-foreground">
-                                Keine Treffer für deine Suche.
-                            </p>
-                        )}
+                        {usersQuery.isLoading && <p className="pt-4 text-sm text-muted-foreground">Benutzer werden geladen...</p>}
+                        {usersQuery.isError && <p className="pt-4 text-sm text-destructive">Benutzer konnten nicht geladen werden.</p>}
+                        {usersQuery.data && filteredUsers.length === 0 && <p className="pt-4 text-sm text-muted-foreground">Keine Treffer für deine Suche.</p>}
                     </CardContent>
                 </Card>
             </div>
+
+            <Dialog open={resetTarget !== null} onOpenChange={(nextOpen) => { if (!nextOpen) { setResetTarget(null); setResetPassword(''); } }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Passwort zurücksetzen</DialogTitle>
+                        <DialogDescription>{resetTarget ? `Neues Passwort für ${resetTarget.name} festlegen.` : 'Neues Passwort festlegen.'}</DialogDescription>
+                    </DialogHeader>
+                    <form className="space-y-4" onSubmit={(event) => {
+                        event.preventDefault();
+                        if (!resetTarget) return;
+                        if (resetPassword.length < 12) {
+                            toast.error('Passwort muss mindestens 12 Zeichen lang sein');
+                            return;
+                        }
+                        resetPasswordMutation.mutate({ user: resetTarget, password: resetPassword });
+                    }}>
+                        <div className="space-y-2">
+                            <Label htmlFor="reset-password">Neues Passwort</Label>
+                            <Input id="reset-password" type="password" minLength={12} autoFocus value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} required />
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="secondary" onClick={() => { setResetTarget(null); setResetPassword(''); }}>Abbrechen</Button>
+                            <Button type="submit" disabled={resetPasswordMutation.isPending}>{resetPasswordMutation.isPending ? 'Wird gesetzt...' : 'Passwort setzen'}</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={temporaryPassword !== null} onOpenChange={(nextOpen) => { if (!nextOpen) setTemporaryPassword(null); }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Temporäres Passwort</DialogTitle>
+                        <DialogDescription>{temporaryPassword ? `Passwort für ${temporaryPassword.user.name}. Nur jetzt sichtbar.` : 'Temporäres Passwort.'}</DialogDescription>
+                    </DialogHeader>
+                    {temporaryPassword && (
+                        <>
+                            <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 font-mono text-sm break-all">{temporaryPassword.password}</div>
+                            <DialogFooter>
+                                <Button type="button" variant="secondary" onClick={async () => {
+                                    const success = await copyToClipboard(temporaryPassword.password);
+                                    toast[success ? 'success' : 'error'](success ? 'Temporäres Passwort kopiert' : 'Zwischenablage konnte nicht verwendet werden');
+                                }}>
+                                    <Copy className="size-4" />
+                                    {copiedText === temporaryPassword.password ? 'Kopiert' : 'Kopieren'}
+                                </Button>
+                                <Button type="button" onClick={() => setTemporaryPassword(null)}>Schließen</Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={deleteTarget !== null} onOpenChange={(nextOpen) => { if (!nextOpen) setDeleteTarget(null); }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Benutzer löschen</DialogTitle>
+                        <DialogDescription>{deleteTarget ? `Möchtest du ${deleteTarget.name} wirklich löschen? Diese Aktion entfernt das Konto dauerhaft.` : 'Benutzer dauerhaft löschen.'}</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>Abbrechen</Button>
+                        <Button type="button" variant="destructive" disabled={deleteUserMutation.isPending || !deleteTarget} onClick={() => { if (deleteTarget) deleteUserMutation.mutate(deleteTarget.id); }}>
+                            <Trash2 className="size-4" />
+                            {deleteUserMutation.isPending ? 'Wird gelöscht...' : 'Jetzt löschen'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

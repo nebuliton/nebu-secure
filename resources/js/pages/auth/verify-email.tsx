@@ -4,6 +4,7 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { logout } from '@/routes';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     return (
@@ -33,7 +34,10 @@ export default function VerifyEmail({ status }: { status?: string }) {
                         </Button>
 
                         <TextLink
-                            href="/logout"
+                            href={logout.url()}
+                            method="post"
+                            as="button"
+                            type="button"
                             className="mx-auto block text-sm"
                         >
                             Abmelden
