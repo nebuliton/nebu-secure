@@ -256,7 +256,7 @@ class ApplicationUpdateService
                 $this->runLoggedCommand(
                     $run,
                     'Installiere Composer-Abhängigkeiten',
-                    ['composer', 'install', '--no-interaction', '--no-progress', '--prefer-dist', '--optimize-autoloader'],
+                    $this->composerInstallCommand(),
                     $output,
                     1800,
                 );
@@ -383,6 +383,27 @@ class ApplicationUpdateService
         return ! file_exists(base_path('vendor/autoload.php'))
             || in_array('composer.json', $changedFiles, true)
             || in_array('composer.lock', $changedFiles, true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function composerInstallCommand(): array
+    {
+        $command = [
+            'composer',
+            'install',
+            '--no-interaction',
+            '--no-progress',
+            '--prefer-dist',
+            '--optimize-autoloader',
+        ];
+
+        if (! app()->environment('local')) {
+            $command[] = '--no-dev';
+        }
+
+        return $command;
     }
 
     /**

@@ -59,4 +59,23 @@ class ApplicationUpdateServiceTest extends TestCase
             $normalizeErrorMessage("error: cannot open .git/FETCH_HEAD: Permission denied\n"),
         );
     }
+
+    #[Test]
+    public function composer_install_command_uses_no_dev_outside_local_environment(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $composerInstallCommand = Closure::bind(
+            fn (): array => $this->composerInstallCommand(),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($composerInstallCommand);
+        $this->assertContains('--no-dev', $composerInstallCommand());
+    }
 }
