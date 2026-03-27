@@ -1,0 +1,29 @@
+{
+    "version": "0.1.0",
+    "channel": "stable",
+    "branch": "main",
+    "update_paths": [
+        "app",
+        "bootstrap",
+        "config",
+        "database",
+        "public",
+        "resources",
+        "routes",
+        "tests",
+        "artisan",
+        "composer.json",
+        "composer.lock",
+        "package.json",
+        "package-lock.json",
+        "Dockerfile",
+        "docker-compose.yml",
+        "deploy.sh",
+        "update.sh",
+        "eslint.config.js",
+        "phpunit.xml",
+        "tsconfig.json",
+        "vite.config.ts",
+        "version.json"
+    ]
+}

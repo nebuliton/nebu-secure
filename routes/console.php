@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\User;
+use App\Services\ApplicationUpdateService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
@@ -263,3 +265,54 @@ Artisan::command('user:delete
 
     return self::SUCCESS;
 })->purpose('Delete a user and clean up related sessions/tokens');
+
+Artisan::command('app:update
+    {--check : Prüft nur, ob eine neue freigegebene Version vorliegt}
+    {--auto : Führt das Update nur aus, wenn automatische Updates aktiviert sind}
+    {--json : Gibt das Ergebnis als JSON aus}
+', function () {
+    /** @var ApplicationUpdateService $updateService */
+    $updateService = app(ApplicationUpdateService::class);
+
+    if ((bool) $this->option('check')) {
+        $status = $updateService->status();
+
+        if ((bool) $this->option('json')) {
+            $this->line(json_encode($status, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return $status['healthy'] ? self::SUCCESS : self::FAILURE;
+        }
+
+        $this->table(
+            ['Feld', 'Wert'],
+            [
+                ['Lokale Version', (string) data_get($status, 'local.version', 'unbekannt')],
+                ['Remote Version', (string) data_get($status, 'remote.version', 'unbekannt')],
+                ['Branch', (string) ($status['branch'] ?? 'unbekannt')],
+                ['Update verfügbar', ($status['update_available'] ?? false) ? 'ja' : 'nein'],
+                ['Update möglich', ($status['can_update'] ?? false) ? 'ja' : 'nein'],
+                ['Auto-Update', ($status['auto_update_enabled'] ?? false) ? 'ja' : 'nein'],
+                ['Fehler', (string) ($status['error'] ?? '-') ?: '-'],
+            ],
+        );
+
+        return $status['healthy'] ? self::SUCCESS : self::FAILURE;
+    }
+
+    $result = $updateService->run(
+        automatic: (bool) $this->option('auto'),
+        output: fn (string $line) => $this->line($line),
+    );
+
+    if ((bool) $this->option('json')) {
+        $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
+    return in_array($result['status'], ['succeeded', 'skipped'], true)
+        ? self::SUCCESS
+        : self::FAILURE;
+})->purpose('Prüft und installiert freigegebene App-Updates');
+
+Schedule::command('app:update --auto')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();

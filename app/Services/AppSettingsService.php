@@ -79,6 +79,7 @@ class AppSettingsService
             'app_description' => 'Open-Source Security Vault für Teams mit Rollen, Gruppen und zentralem Secret-Management.',
             'repository_url' => 'https://github.com/nebuliton/nebu-secure',
             'documentation_url' => 'https://github.com/nebuliton/nebu-secure#readme',
+            'auto_update_enabled' => '0',
             'support_email' => null,
             'company_name' => null,
             'imprint_url' => null,

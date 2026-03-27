@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AppSettingsController as AdminAppSettingsController;
+use App\Http\Controllers\Api\Admin\ApplicationUpdateController as AdminApplicationUpdateController;
 use App\Http\Controllers\Api\Admin\GroupController as AdminGroupController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\Admin\VaultItemController as AdminVaultItemController;
@@ -21,6 +22,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::put('settings', [AdminAppSettingsController::class, 'update']);
         Route::post('settings/logo', [AdminAppSettingsController::class, 'uploadLogo']);
         Route::delete('settings/logo', [AdminAppSettingsController::class, 'deleteLogo']);
+        Route::get('updates', [AdminApplicationUpdateController::class, 'show']);
+        Route::post('updates/run', [AdminApplicationUpdateController::class, 'run'])->middleware('throttle:sensitive');
+        Route::patch('updates/preferences', [AdminApplicationUpdateController::class, 'preferences']);
+        Route::get('updates/runs/{runId}', [AdminApplicationUpdateController::class, 'runShow']);
 
         Route::apiResource('users', AdminUserController::class);
         Route::patch('users/{user}/toggle-active', [AdminUserController::class, 'toggleActive']);
