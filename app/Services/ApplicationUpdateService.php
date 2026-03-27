@@ -757,6 +757,13 @@ class ApplicationUpdateService
             return 'Der Webserver-Benutzer hat keine Schreibrechte auf das Git-Verzeichnis. Ohne diese Rechte kann das Dashboard keine Update-Prüfung per Git-Fetch ausführen.';
         }
 
+        if (
+            str_contains($trimmed, 'Nicht erlaubter Update-Pfad [')
+            && str_contains($trimmed, '.sh]')
+        ) {
+            return 'Die Live-Instanz nutzt noch einen älteren Update-Validator und erkennt das neue Root-Skript in version.json nicht. Spiele diesen Stand einmal manuell ein; danach können Shell-Skripte wie install.sh regulär über das Update-System freigegeben werden.';
+        }
+
         return $trimmed;
     }
 

@@ -47,6 +47,13 @@ class VersionManifestService
     /**
      * @var list<string>
      */
+    private const SAFE_ROOT_FILE_PATTERNS = [
+        '/\A[A-Za-z0-9._-]+\.sh\z/',
+    ];
+
+    /**
+     * @var list<string>
+     */
     private const DISALLOWED_PREFIXES = [
         '.env',
         '.git',
@@ -151,7 +158,7 @@ class VersionManifestService
                 }
             }
 
-            if (in_array($normalizedPath, self::SAFE_ROOT_FILES, true)) {
+            if ($this->isAllowedRootFile($normalizedPath)) {
                 $validated[] = $normalizedPath;
 
                 continue;
@@ -167,5 +174,24 @@ class VersionManifestService
         }
 
         return array_values(array_unique($validated));
+    }
+
+    private function isAllowedRootFile(string $path): bool
+    {
+        if (in_array($path, self::SAFE_ROOT_FILES, true)) {
+            return true;
+        }
+
+        if (str_contains($path, '/')) {
+            return false;
+        }
+
+        foreach (self::SAFE_ROOT_FILE_PATTERNS as $pattern) {
+            if (preg_match($pattern, $path) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
