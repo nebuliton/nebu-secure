@@ -765,6 +765,16 @@ class ApplicationUpdateService
         }
 
         if (
+            str_contains($lowerTrimmed, '.git/objects')
+            || str_contains($lowerTrimmed, '.git\\objects')
+            || str_contains($lowerTrimmed, 'insufficient permission for adding an object to repository database')
+            || str_contains($lowerTrimmed, 'failed to write object')
+            || str_contains($lowerTrimmed, 'unpack-objects failed')
+        ) {
+            return 'Der Deploy-Benutzer kann nicht in .git/objects schreiben. Git kann deshalb neue Objekte weder empfangen noch speichern. Korrigiere Eigentümer oder ACLs für das komplette Repository inklusive .git und führe das Update danach erneut aus.';
+        }
+
+        if (
             str_contains($trimmed, 'kann nicht in das Git-Verzeichnis schreiben')
             || str_contains($trimmed, 'cannot open .git/')
         ) {

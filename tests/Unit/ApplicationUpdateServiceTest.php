@@ -83,6 +83,28 @@ class ApplicationUpdateServiceTest extends TestCase
     }
 
     #[Test]
+    public function git_object_database_permission_errors_are_normalized_to_actionable_text(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $normalizeErrorMessage = Closure::bind(
+            fn (string $message): string => $this->normalizeErrorMessage($message),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($normalizeErrorMessage);
+        $this->assertSame(
+            'Der Deploy-Benutzer kann nicht in .git/objects schreiben. Git kann deshalb neue Objekte weder empfangen noch speichern. Korrigiere Eigentümer oder ACLs für das komplette Repository inklusive .git und führe das Update danach erneut aus.',
+            $normalizeErrorMessage('error: insufficient permission for adding an object to repository database .git/objects fatal: failed to write object fatal: unpack-objects failed'),
+        );
+    }
+
+    #[Test]
     public function composer_install_command_uses_no_dev_outside_local_environment(): void
     {
         $service = new ApplicationUpdateService(
