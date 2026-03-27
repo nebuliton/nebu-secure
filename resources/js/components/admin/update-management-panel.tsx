@@ -108,28 +108,18 @@ export default function UpdateManagementPanel() {
     const isBusy = statusQuery.isLoading || statusQuery.isFetching;
     const status = statusQuery.data;
     const isHealthy = status?.healthy ?? false;
-    const localVersionLabel = isHealthy
-        ? status?.local?.version ?? 'Unbekannt'
-        : 'Nicht verfügbar';
-    const localCommitLabel = isHealthy
-        ? status?.local?.short_commit ?? 'unbekannt'
-        : 'nicht verfügbar';
-    const remoteVersionLabel = isHealthy
-        ? status?.remote?.version ?? 'Unbekannt'
-        : 'Nicht verfügbar';
-    const remoteCommitLabel = isHealthy
-        ? status?.remote?.short_commit ?? 'unbekannt'
-        : 'nicht verfügbar';
-    const repositoryLabel = isHealthy
-        ? status?.repository_url ?? 'Kein Origin-Remote gefunden'
-        : 'Nicht verfügbar';
-    const branchLabel = isHealthy
-        ? `${status?.current_branch ?? '-'} → ${status?.branch ?? '-'}`
-        : 'Nicht verfügbar';
-    const updatePathsLabel = isHealthy
-        ? status?.update_paths.length
-            ? status.update_paths.join(', ')
-            : 'Keine freigegebenen Bereiche konfiguriert'
+    const localVersionLabel = status?.local?.version ?? 'Unbekannt';
+    const localCommitLabel = status?.local?.short_commit ?? 'unbekannt';
+    const remoteVersionLabel = status?.remote?.version ?? 'Nicht verfügbar';
+    const remoteCommitLabel = status?.remote?.short_commit ?? 'nicht verfügbar';
+    const repositoryLabel =
+        status?.repository_url ?? 'Kein Origin-Remote gefunden';
+    const branchLabel =
+        status?.current_branch && status?.branch
+            ? `${status.current_branch} → ${status.branch}`
+            : status?.branch ?? status?.current_branch ?? 'Nicht verfügbar';
+    const updatePathsLabel = status?.update_paths.length
+        ? status.update_paths.join(', ')
         : 'Nicht verfügbar';
 
     return (
@@ -267,7 +257,7 @@ export default function UpdateManagementPanel() {
                                             <p className="font-medium text-foreground">
                                                 Repository
                                             </p>
-                                            {isHealthy && status.repository_url ? (
+                                            {status.repository_url ? (
                                                 <a
                                                     href={status.repository_url}
                                                     target="_blank"
@@ -299,7 +289,9 @@ export default function UpdateManagementPanel() {
                                             <p className="font-medium text-foreground">
                                                 Freigegebene Bereiche
                                             </p>
-                                            <p>{updatePathsLabel}</p>
+                                            <p className="break-words">
+                                                {updatePathsLabel}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

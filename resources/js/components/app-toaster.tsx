@@ -11,17 +11,17 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 
 const iconShellClassName =
-    'inline-flex size-9 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
+    'inline-flex size-8 shrink-0 items-center justify-center rounded-[1rem] ring-1 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.55)]';
 
 const iconToneClassNames = {
     success:
-        'bg-emerald-500/14 text-emerald-700 ring-emerald-500/18 dark:bg-emerald-400/16 dark:text-emerald-100 dark:ring-emerald-300/18',
-    error: 'bg-rose-500/14 text-rose-700 ring-rose-500/18 dark:bg-rose-400/16 dark:text-rose-100 dark:ring-rose-300/18',
-    info: 'bg-sky-500/14 text-sky-700 ring-sky-500/18 dark:bg-sky-400/16 dark:text-sky-100 dark:ring-sky-300/18',
+        'bg-emerald-500/12 text-emerald-700 ring-emerald-500/16 dark:bg-emerald-400/14 dark:text-emerald-100 dark:ring-emerald-300/16',
+    error: 'bg-rose-500/12 text-rose-700 ring-rose-500/16 dark:bg-rose-400/14 dark:text-rose-100 dark:ring-rose-300/16',
+    info: 'bg-sky-500/12 text-sky-700 ring-sky-500/16 dark:bg-sky-400/14 dark:text-sky-100 dark:ring-sky-300/16',
     warning:
-        'bg-amber-500/16 text-amber-800 ring-amber-500/20 dark:bg-amber-300/16 dark:text-amber-100 dark:ring-amber-200/18',
+        'bg-amber-500/14 text-amber-800 ring-amber-500/16 dark:bg-amber-300/14 dark:text-amber-100 dark:ring-amber-200/16',
     loading:
-        'bg-slate-500/12 text-slate-700 ring-slate-500/16 dark:bg-slate-300/12 dark:text-slate-100 dark:ring-slate-200/14',
+        'bg-slate-500/10 text-slate-700 ring-slate-500/14 dark:bg-slate-300/10 dark:text-slate-100 dark:ring-slate-200/12',
 } as const;
 
 type ToastTone = keyof typeof iconToneClassNames;
@@ -47,37 +47,36 @@ export function AppToaster() {
         <Toaster
             closeButton
             containerAriaLabel="Benachrichtigungen"
-            duration={4200}
-            expand
-            gap={12}
-            mobileOffset={16}
-            offset={20}
+            duration={3600}
+            gap={10}
+            mobileOffset={14}
+            offset={18}
             position="top-right"
             theme={resolvedAppearance}
-            visibleToasts={4}
+            visibleToasts={3}
             icons={{
                 success: (
                     <ToastIcon
                         tone="success"
-                        icon={<CheckCircle2 className="size-4.5" strokeWidth={2.25} />}
+                        icon={<CheckCircle2 className="size-4" strokeWidth={2.2} />}
                     />
                 ),
                 error: (
                     <ToastIcon
                         tone="error"
-                        icon={<AlertCircle className="size-4.5" strokeWidth={2.25} />}
+                        icon={<AlertCircle className="size-4" strokeWidth={2.2} />}
                     />
                 ),
                 info: (
                     <ToastIcon
                         tone="info"
-                        icon={<Info className="size-4.5" strokeWidth={2.25} />}
+                        icon={<Info className="size-4" strokeWidth={2.2} />}
                     />
                 ),
                 warning: (
                     <ToastIcon
                         tone="warning"
-                        icon={<TriangleAlert className="size-4.5" strokeWidth={2.25} />}
+                        icon={<TriangleAlert className="size-4" strokeWidth={2.2} />}
                     />
                 ),
                 loading: (
@@ -85,17 +84,17 @@ export function AppToaster() {
                         tone="loading"
                         icon={
                             <LoaderCircle
-                                className="size-4.5 animate-spin"
-                                strokeWidth={2.25}
+                                className="size-4 animate-spin"
+                                strokeWidth={2.2}
                             />
                         }
                     />
                 ),
-                close: <X className="size-4" strokeWidth={2.25} />,
+                close: <X className="size-3.5" strokeWidth={2.25} />,
             }}
             toastOptions={{
                 closeButton: true,
-                duration: 4200,
+                duration: 3600,
                 unstyled: true,
                 classNames: {
                     toast: 'app-toast',

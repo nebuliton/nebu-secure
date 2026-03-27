@@ -37,4 +37,26 @@ class ApplicationUpdateServiceTest extends TestCase
         $this->assertFalse($isRemoteVersionNewer('0.1.0', '0.1.1'));
         $this->assertTrue($isRemoteVersionNewer('v1.0.1', '1.0.0'));
     }
+
+    #[Test]
+    public function fetch_head_permission_errors_are_normalized_to_actionable_text(): void
+    {
+        $service = new ApplicationUpdateService(
+            Mockery::mock(VersionManifestService::class),
+            Mockery::mock(AppSettingsService::class),
+            Mockery::mock(AuditLogService::class),
+        );
+
+        $normalizeErrorMessage = Closure::bind(
+            fn (string $message): string => $this->normalizeErrorMessage($message),
+            $service,
+            ApplicationUpdateService::class,
+        );
+
+        $this->assertNotNull($normalizeErrorMessage);
+        $this->assertSame(
+            'Der Webserver-Benutzer kann nicht in .git schreiben. Das Dashboard kann deshalb weder den Remote-Stand abrufen noch Updates einspielen. Gib dem Deploy-/Webserver-Benutzer Schreibrechte auf das Repository oder führe Updates per ./update.sh aus.',
+            $normalizeErrorMessage("error: cannot open .git/FETCH_HEAD: Permission denied\n"),
+        );
+    }
 }

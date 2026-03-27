@@ -30,15 +30,46 @@ class ApplicationUpdateService
     public function status(): array
     {
         $recentRuns = $this->recentRuns();
+        $status = [
+            'healthy' => false,
+            'error' => null,
+            'repository_url' => null,
+            'deploy_script' => self::DEPLOY_SCRIPT,
+            'current_branch' => null,
+            'branch' => null,
+            'auto_update_enabled' => $this->autoUpdateEnabled(),
+            'update_available' => false,
+            'can_update' => false,
+            'local' => null,
+            'remote' => null,
+            'update_paths' => [],
+            'tracked_changes' => [],
+            'changed_files' => [],
+            'blocked_files' => [],
+            'last_run' => $recentRuns[0] ?? null,
+            'recent_runs' => $recentRuns,
+        ];
 
         try {
             $localManifest = $this->manifestService->readLocal();
             $branch = $localManifest['branch'];
+            $status['branch'] = $branch;
+            $status['update_paths'] = $localManifest['update_paths'];
 
             $repositoryUrl = $this->runCommand(['git', 'remote', 'get-url', 'origin']);
             $currentBranch = $this->runCommand(['git', 'rev-parse', '--abbrev-ref', 'HEAD']);
             $localCommit = $this->runCommand(['git', 'rev-parse', 'HEAD']);
             $trackedChanges = $this->runLines(['git', 'status', '--porcelain', '--untracked-files=no']);
+
+            $status['repository_url'] = $repositoryUrl;
+            $status['current_branch'] = $currentBranch;
+            $status['tracked_changes'] = $trackedChanges;
+            $status['local'] = [
+                'version' => $localManifest['version'],
+                'channel' => $localManifest['channel'],
+                'commit' => $localCommit,
+                'short_commit' => $this->shortCommit($localCommit),
+            ];
 
             $this->runCommand(['git', 'fetch', '--quiet', 'origin', $branch], 180);
 
@@ -54,55 +85,24 @@ class ApplicationUpdateService
                 $localManifest['version'],
             );
 
-            return [
-                'healthy' => true,
-                'error' => null,
-                'repository_url' => $repositoryUrl,
-                'deploy_script' => self::DEPLOY_SCRIPT,
-                'current_branch' => $currentBranch,
-                'branch' => $branch,
-                'auto_update_enabled' => $this->autoUpdateEnabled(),
-                'update_available' => $updateAvailable,
-                'can_update' => $updateAvailable && $trackedChanges === [] && $blockedFiles === [],
-                'local' => [
-                    'version' => $localManifest['version'],
-                    'channel' => $localManifest['channel'],
-                    'commit' => $localCommit,
-                    'short_commit' => $this->shortCommit($localCommit),
-                ],
-                'remote' => [
-                    'version' => $remoteManifest['version'],
-                    'channel' => $remoteManifest['channel'],
-                    'commit' => $remoteCommit,
-                    'short_commit' => $this->shortCommit($remoteCommit),
-                ],
-                'update_paths' => $remoteManifest['update_paths'],
-                'tracked_changes' => $trackedChanges,
-                'changed_files' => $managedChangedFiles,
-                'blocked_files' => $blockedFiles,
-                'last_run' => $recentRuns[0] ?? null,
-                'recent_runs' => $recentRuns,
+            $status['healthy'] = true;
+            $status['remote'] = [
+                'version' => $remoteManifest['version'],
+                'channel' => $remoteManifest['channel'],
+                'commit' => $remoteCommit,
+                'short_commit' => $this->shortCommit($remoteCommit),
             ];
+            $status['update_paths'] = $remoteManifest['update_paths'];
+            $status['changed_files'] = $managedChangedFiles;
+            $status['blocked_files'] = $blockedFiles;
+            $status['update_available'] = $updateAvailable;
+            $status['can_update'] = $updateAvailable && $trackedChanges === [] && $blockedFiles === [];
+
+            return $status;
         } catch (\Throwable $exception) {
-            return [
-                'healthy' => false,
-                'error' => $this->normalizeErrorMessage($exception->getMessage()),
-                'repository_url' => null,
-                'deploy_script' => self::DEPLOY_SCRIPT,
-                'current_branch' => null,
-                'branch' => null,
-                'auto_update_enabled' => $this->autoUpdateEnabled(),
-                'update_available' => false,
-                'can_update' => false,
-                'local' => null,
-                'remote' => null,
-                'update_paths' => [],
-                'tracked_changes' => [],
-                'changed_files' => [],
-                'blocked_files' => [],
-                'last_run' => $recentRuns[0] ?? null,
-                'recent_runs' => $recentRuns,
-            ];
+            $status['error'] = $this->normalizeErrorMessage($exception->getMessage());
+
+            return $status;
         }
     }
 
@@ -490,6 +490,7 @@ class ApplicationUpdateService
 
         if (($command[0] ?? null) === 'git') {
             $this->ensureGitSafeDirectory();
+            $this->ensureGitWriteAccessIfNeeded($command);
             $environment = $this->gitEnvironment();
         }
 
@@ -576,6 +577,34 @@ class ApplicationUpdateService
         $this->gitSafeDirectoryConfigured = true;
     }
 
+    private function ensureGitWriteAccessIfNeeded(array $command): void
+    {
+        if (! $this->gitCommandRequiresWriteAccess($command)) {
+            return;
+        }
+
+        $gitDirectory = $this->gitDirectoryPath();
+
+        if ($gitDirectory === null || ! File::exists($gitDirectory)) {
+            return;
+        }
+
+        $writeProbe = is_dir($gitDirectory)
+            ? $gitDirectory
+            : dirname($gitDirectory);
+
+        if (! is_writable($writeProbe)) {
+            throw new RuntimeException(
+                'Der Webserver-Benutzer kann nicht in das Git-Verzeichnis schreiben. Update-Prüfungen und Dashboard-Updates benötigen Schreibrechte auf .git oder müssen über ./update.sh unter dem Deploy-Benutzer laufen.',
+            );
+        }
+    }
+
+    private function gitCommandRequiresWriteAccess(array $command): bool
+    {
+        return in_array($command[1] ?? '', ['fetch', 'pull'], true);
+    }
+
     /**
      * @param  array<string, string>  $environment
      */
@@ -637,6 +666,37 @@ class ApplicationUpdateService
         return storage_path('app/update-git-home');
     }
 
+    private function gitDirectoryPath(): ?string
+    {
+        $dotGitPath = base_path('.git');
+
+        if (is_dir($dotGitPath)) {
+            return $dotGitPath;
+        }
+
+        if (! is_file($dotGitPath)) {
+            return null;
+        }
+
+        $contents = trim((string) File::get($dotGitPath));
+
+        if (! str_starts_with($contents, 'gitdir:')) {
+            return null;
+        }
+
+        $gitDirectory = trim(substr($contents, strlen('gitdir:')));
+
+        if ($gitDirectory === '') {
+            return null;
+        }
+
+        if (preg_match('/^[A-Za-z]:[\\\\\\/]/', $gitDirectory) === 1 || str_starts_with($gitDirectory, '/')) {
+            return $gitDirectory;
+        }
+
+        return base_path($gitDirectory);
+    }
+
     private function gitConfigFilePath(): string
     {
         return $this->gitHomePath().'/.gitconfig';
@@ -660,6 +720,20 @@ class ApplicationUpdateService
 
         if (str_contains($trimmed, "No such remote 'origin'")) {
             return 'Für dieses Projekt ist kein Git-Remote namens origin konfiguriert.';
+        }
+
+        if (
+            str_contains($trimmed, '.git/FETCH_HEAD: Permission denied')
+            || str_contains($trimmed, '.git\\FETCH_HEAD: Permission denied')
+        ) {
+            return 'Der Webserver-Benutzer kann nicht in .git schreiben. Das Dashboard kann deshalb weder den Remote-Stand abrufen noch Updates einspielen. Gib dem Deploy-/Webserver-Benutzer Schreibrechte auf das Repository oder führe Updates per ./update.sh aus.';
+        }
+
+        if (
+            str_contains($trimmed, 'kann nicht in das Git-Verzeichnis schreiben')
+            || str_contains($trimmed, 'cannot open .git/')
+        ) {
+            return 'Der Webserver-Benutzer hat keine Schreibrechte auf das Git-Verzeichnis. Ohne diese Rechte kann das Dashboard keine Update-Prüfung per Git-Fetch ausführen.';
         }
 
         return $trimmed;
