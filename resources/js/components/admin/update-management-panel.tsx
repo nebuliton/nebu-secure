@@ -176,7 +176,7 @@ export default function UpdateManagementPanel() {
                             disabled={isBusy}
                         >
                             <RefreshCw className="mr-2 size-4" />
-                            Status aktualisieren
+                            Neu prüfen
                         </Button>
                         <Button
                             type="button"
