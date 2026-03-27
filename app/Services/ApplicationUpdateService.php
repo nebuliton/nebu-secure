@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\UpdateRun;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
@@ -14,6 +15,8 @@ class ApplicationUpdateService
     private const LOCK_NAME = 'application-update-run';
 
     private const DEPLOY_SCRIPT = './deploy.sh';
+
+    private bool $gitSafeDirectoryConfigured = false;
 
     public function __construct(
         private readonly VersionManifestService $manifestService,
@@ -46,7 +49,10 @@ class ApplicationUpdateService
             $allChangedFiles = $this->runLines(['git', 'diff', '--name-only', 'HEAD', "origin/{$branch}"]);
             $blockedFiles = $this->blockedFiles($allChangedFiles, $remoteManifest['update_paths']);
             $managedChangedFiles = array_values(array_diff($allChangedFiles, $blockedFiles));
-            $updateAvailable = $remoteManifest['version'] !== $localManifest['version'];
+            $updateAvailable = $this->isRemoteVersionNewer(
+                $remoteManifest['version'],
+                $localManifest['version'],
+            );
 
             return [
                 'healthy' => true,
@@ -80,7 +86,7 @@ class ApplicationUpdateService
         } catch (\Throwable $exception) {
             return [
                 'healthy' => false,
-                'error' => $exception->getMessage(),
+                'error' => $this->normalizeErrorMessage($exception->getMessage()),
                 'repository_url' => null,
                 'deploy_script' => self::DEPLOY_SCRIPT,
                 'current_branch' => null,
@@ -174,8 +180,15 @@ class ApplicationUpdateService
 
             $this->appendLog($run, "Remote-Version: {$remoteManifest['version']} ({$this->shortCommit($remoteCommit)})", $output);
 
-            if ($remoteManifest['version'] === $localManifest['version']) {
-                $summary = 'Keine neue freigegebene Version gefunden.';
+            $versionComparison = $this->compareVersions(
+                $remoteManifest['version'],
+                $localManifest['version'],
+            );
+
+            if ($versionComparison <= 0) {
+                $summary = $versionComparison === 0
+                    ? 'Keine neue freigegebene Version gefunden.'
+                    : 'Der Remote-Stand ist älter als die installierte Version. Es wird kein Downgrade ausgeführt.';
 
                 $this->finishRun($run, 'skipped', $summary, [], $output);
 
@@ -303,7 +316,7 @@ class ApplicationUpdateService
             ];
         } catch (\Throwable $exception) {
             $summary = $exception->getMessage() !== ''
-                ? $exception->getMessage()
+                ? $this->normalizeErrorMessage($exception->getMessage())
                 : 'Das Update ist fehlgeschlagen.';
 
             $this->appendLog($run, "Fehler: {$summary}", $output);
@@ -347,6 +360,19 @@ class ApplicationUpdateService
     private function autoUpdateEnabled(): bool
     {
         return $this->appSettingsService->get('auto_update_enabled', '0') === '1';
+    }
+
+    private function isRemoteVersionNewer(string $remoteVersion, string $localVersion): bool
+    {
+        return $this->compareVersions($remoteVersion, $localVersion) > 0;
+    }
+
+    private function compareVersions(string $leftVersion, string $rightVersion): int
+    {
+        return version_compare(
+            ltrim(trim($leftVersion), 'vV'),
+            ltrim(trim($rightVersion), 'vV'),
+        );
     }
 
     /**
@@ -459,7 +485,21 @@ class ApplicationUpdateService
 
     private function runCommand(array $command, int $timeout = 900): string
     {
-        $process = new Process($command, base_path(), null, null, $timeout);
+        $workingDirectory = base_path();
+        $environment = null;
+
+        if (($command[0] ?? null) === 'git') {
+            $this->ensureGitSafeDirectory();
+            $environment = $this->gitEnvironment();
+        }
+
+        $process = new Process(
+            $command,
+            $workingDirectory,
+            $environment,
+            null,
+            $timeout,
+        );
 
         try {
             $process->run();
@@ -483,6 +523,146 @@ class ApplicationUpdateService
         }
 
         return $combinedOutput;
+    }
+
+    private function ensureGitSafeDirectory(): void
+    {
+        if ($this->gitSafeDirectoryConfigured) {
+            return;
+        }
+
+        File::ensureDirectoryExists($this->gitHomePath());
+        File::ensureDirectoryExists(dirname($this->gitConfigFilePath()));
+
+        if (! File::exists($this->gitConfigFilePath())) {
+            File::put($this->gitConfigFilePath(), '');
+        }
+
+        $safeDirectory = str_replace('\\', '/', base_path());
+        $existing = $this->runUtilityCommand(
+            ['git', 'config', '--global', '--list'],
+            dirname(base_path()),
+            $this->gitEnvironment(),
+            60,
+        );
+
+        $configuredDirectories = array_values(
+            array_filter(
+                array_map(
+                    static function (string $line): ?string {
+                        $trimmed = trim($line);
+
+                        if (! str_starts_with($trimmed, 'safe.directory=')) {
+                            return null;
+                        }
+
+                        return substr($trimmed, strlen('safe.directory='));
+                    },
+                    preg_split('/\r\n|\r|\n/', $existing) ?: [],
+                ),
+                static fn (?string $line): bool => $line !== null && $line !== '',
+            ),
+        );
+
+        if (! in_array($safeDirectory, $configuredDirectories, true)) {
+            $this->runUtilityCommand(
+                ['git', 'config', '--global', '--add', 'safe.directory', $safeDirectory],
+                dirname(base_path()),
+                $this->gitEnvironment(),
+                60,
+            );
+        }
+
+        $this->gitSafeDirectoryConfigured = true;
+    }
+
+    /**
+     * @param  array<string, string>  $environment
+     */
+    private function runUtilityCommand(
+        array $command,
+        string $workingDirectory,
+        array $environment,
+        int $timeout = 900,
+    ): string {
+        $process = new Process(
+            $command,
+            $workingDirectory,
+            $environment,
+            null,
+            $timeout,
+        );
+
+        try {
+            $process->run();
+        } catch (ProcessTimedOutException $exception) {
+            throw new RuntimeException(
+                'Kommando lief in ein Timeout: '.$this->commandToString($command),
+                previous: $exception,
+            );
+        }
+
+        $stdOut = trim($process->getOutput());
+        $stdErr = trim($process->getErrorOutput());
+        $combinedOutput = trim(implode(PHP_EOL, array_filter([$stdOut, $stdErr])));
+
+        if (! $process->isSuccessful()) {
+            throw new RuntimeException(
+                $combinedOutput !== ''
+                    ? $combinedOutput
+                    : 'Kommando fehlgeschlagen: '.$this->commandToString($command),
+            );
+        }
+
+        return $combinedOutput;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function gitEnvironment(): array
+    {
+        $home = $this->gitHomePath();
+
+        return [
+            'HOME' => $home,
+            'XDG_CONFIG_HOME' => $home,
+            'GIT_CONFIG_GLOBAL' => $this->gitConfigFilePath(),
+            'GIT_TERMINAL_PROMPT' => '0',
+        ];
+    }
+
+    private function gitHomePath(): string
+    {
+        return storage_path('app/update-git-home');
+    }
+
+    private function gitConfigFilePath(): string
+    {
+        return $this->gitHomePath().'/.gitconfig';
+    }
+
+    private function normalizeErrorMessage(string $message): string
+    {
+        $trimmed = trim($message);
+
+        if ($trimmed === '') {
+            return 'Unbekannter Fehler beim Update.';
+        }
+
+        if (str_contains($trimmed, 'detected dubious ownership in repository')) {
+            return 'Git blockiert das Repository wegen unsicherer Besitzverhältnisse. Der Updater trägt das Repo automatisch als safe.directory ein. Falls der Fehler bleibt, prüfe Schreibrechte auf storage/ und den Webserver-Benutzer.';
+        }
+
+        if (str_contains($trimmed, "path 'version.json' exists on disk, but not in")) {
+            return 'Die Remote-Branch enthält noch keine version.json. Push zuerst den neuen Update-Stand auf die Ziel-Branch.';
+        }
+
+        if (str_contains($trimmed, "No such remote 'origin'")) {
+            return 'Für dieses Projekt ist kein Git-Remote namens origin konfiguriert.';
+        }
+
+        return $trimmed;
     }
 
     /**

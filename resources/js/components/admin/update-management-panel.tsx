@@ -107,6 +107,30 @@ export default function UpdateManagementPanel() {
 
     const isBusy = statusQuery.isLoading || statusQuery.isFetching;
     const status = statusQuery.data;
+    const isHealthy = status?.healthy ?? false;
+    const localVersionLabel = isHealthy
+        ? status?.local?.version ?? 'Unbekannt'
+        : 'Nicht verfügbar';
+    const localCommitLabel = isHealthy
+        ? status?.local?.short_commit ?? 'unbekannt'
+        : 'nicht verfügbar';
+    const remoteVersionLabel = isHealthy
+        ? status?.remote?.version ?? 'Unbekannt'
+        : 'Nicht verfügbar';
+    const remoteCommitLabel = isHealthy
+        ? status?.remote?.short_commit ?? 'unbekannt'
+        : 'nicht verfügbar';
+    const repositoryLabel = isHealthy
+        ? status?.repository_url ?? 'Kein Origin-Remote gefunden'
+        : 'Nicht verfügbar';
+    const branchLabel = isHealthy
+        ? `${status?.current_branch ?? '-'} → ${status?.branch ?? '-'}`
+        : 'Nicht verfügbar';
+    const updatePathsLabel = isHealthy
+        ? status?.update_paths.length
+            ? status.update_paths.join(', ')
+            : 'Keine freigegebenen Bereiche konfiguriert'
+        : 'Nicht verfügbar';
 
     return (
         <div className="space-y-6">
@@ -178,24 +202,28 @@ export default function UpdateManagementPanel() {
                                                 Installierter Stand
                                             </p>
                                             <p className="mt-1 text-2xl font-semibold tracking-tight">
-                                                {status.local?.version ?? 'Unbekannt'}
+                                                {localVersionLabel}
                                             </p>
                                         </div>
                                         <Badge
                                             variant={
-                                                status.update_available
+                                                !isHealthy
+                                                    ? 'outline'
+                                                    : status.update_available
                                                     ? 'default'
                                                     : 'secondary'
                                             }
                                         >
-                                            {status.update_available
+                                            {!isHealthy
+                                                ? 'Statusfehler'
+                                                : status.update_available
                                                 ? 'Update verfügbar'
                                                 : 'Aktuell'}
                                         </Badge>
                                     </div>
                                     <p className="mt-3 text-xs text-muted-foreground">
                                         Commit:{' '}
-                                        {status.local?.short_commit ?? 'unbekannt'}
+                                        {localCommitLabel}
                                     </p>
                                 </div>
 
@@ -206,24 +234,28 @@ export default function UpdateManagementPanel() {
                                                 Verfügbarer Remote-Stand
                                             </p>
                                             <p className="mt-1 text-2xl font-semibold tracking-tight">
-                                                {status.remote?.version ?? 'Unbekannt'}
+                                                {remoteVersionLabel}
                                             </p>
                                         </div>
                                         <Badge
                                             variant={
-                                                status.can_update
+                                                !isHealthy
+                                                    ? 'outline'
+                                                    : status.can_update
                                                     ? 'secondary'
                                                     : 'outline'
                                             }
                                         >
-                                            {status.can_update
+                                            {!isHealthy
+                                                ? 'Statusfehler'
+                                                : status.can_update
                                                 ? 'Installierbar'
                                                 : 'Prüfung nötig'}
                                         </Badge>
                                     </div>
                                     <p className="mt-3 text-xs text-muted-foreground">
                                         Commit:{' '}
-                                        {status.remote?.short_commit ?? 'unbekannt'}
+                                        {remoteCommitLabel}
                                     </p>
                                 </div>
                             </div>
@@ -235,7 +267,7 @@ export default function UpdateManagementPanel() {
                                             <p className="font-medium text-foreground">
                                                 Repository
                                             </p>
-                                            {status.repository_url ? (
+                                            {isHealthy && status.repository_url ? (
                                                 <a
                                                     href={status.repository_url}
                                                     target="_blank"
@@ -245,7 +277,7 @@ export default function UpdateManagementPanel() {
                                                     {status.repository_url}
                                                 </a>
                                             ) : (
-                                                <p>Kein Origin-Remote gefunden</p>
+                                                <p>{repositoryLabel}</p>
                                             )}
                                         </div>
                                         <div>
@@ -254,8 +286,7 @@ export default function UpdateManagementPanel() {
                                             </p>
                                             <p className="flex items-center gap-2">
                                                 <GitBranch className="size-4" />
-                                                {status.current_branch ?? '-'} →{' '}
-                                                {status.branch ?? '-'}
+                                                {branchLabel}
                                             </p>
                                         </div>
                                         <div>
@@ -268,7 +299,7 @@ export default function UpdateManagementPanel() {
                                             <p className="font-medium text-foreground">
                                                 Freigegebene Bereiche
                                             </p>
-                                            <p>{status.update_paths.join(', ')}</p>
+                                            <p>{updatePathsLabel}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -296,7 +327,8 @@ export default function UpdateManagementPanel() {
                                                 )
                                             }
                                             disabled={
-                                                preferencesMutation.isPending
+                                                preferencesMutation.isPending ||
+                                                !isHealthy
                                             }
                                         />
                                     </div>

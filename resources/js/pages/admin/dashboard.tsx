@@ -36,7 +36,7 @@ const sections = [
     {
         title: 'Einstellungen',
         description:
-            'Branding, Links und globale App-Daten fuer Open-Source-Betrieb pflegen.',
+            'Branding, Links und globale App-Daten für Open-Source-Betrieb pflegen.',
         href: '/admin/settings',
         icon: Settings,
     },

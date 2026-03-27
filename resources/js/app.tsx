@@ -3,8 +3,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Toaster } from 'sonner';
 import '../css/app.css';
+import { AppToaster } from './components/app-toaster';
 import { initializeTheme } from './hooks/use-appearance';
 import { queryClient } from './lib/query-client';
 
@@ -30,7 +30,7 @@ createInertiaApp({
             <StrictMode>
                 <QueryClientProvider client={queryClient}>
                     <App {...props} />
-                    <Toaster richColors position="top-right" />
+                    <AppToaster />
                 </QueryClientProvider>
             </StrictMode>,
         );
