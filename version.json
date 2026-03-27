@@ -1,5 +1,5 @@
 {
-    "version": "0.1.3",
+    "version": "0.1.4",
     "channel": "stable",
     "branch": "main",
     "update_paths": [
@@ -20,6 +20,7 @@
         "docker-compose.yml",
         "deploy.sh",
         "install.sh",
+        "README.md",
         "update.sh",
         "eslint.config.js",
         "phpunit.xml",

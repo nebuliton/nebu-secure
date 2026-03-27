@@ -33,6 +33,24 @@ class VersionManifestServiceTest extends TestCase
     }
 
     #[Test]
+    public function readme_file_in_project_root_is_allowed_as_update_path(): void
+    {
+        $service = new VersionManifestService();
+
+        $manifest = $service->parseJson(json_encode([
+            'version' => '0.1.4',
+            'channel' => 'stable',
+            'branch' => 'main',
+            'update_paths' => [
+                'app',
+                'README.md',
+            ],
+        ], JSON_THROW_ON_ERROR));
+
+        $this->assertSame(['app', 'README.md'], $manifest['update_paths']);
+    }
+
+    #[Test]
     public function unsafe_root_files_are_still_rejected(): void
     {
         $service = new VersionManifestService();

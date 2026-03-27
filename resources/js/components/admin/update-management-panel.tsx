@@ -3,6 +3,7 @@ import {
     ArrowUpCircle,
     Clock3,
     GitBranch,
+    Info,
     LoaderCircle,
     RefreshCw,
     ShieldCheck,
@@ -121,6 +122,28 @@ export default function UpdateManagementPanel() {
     const updatePathsLabel = status?.update_paths.length
         ? status.update_paths.join(', ')
         : 'Nicht verfügbar';
+    const hasReleasableUpdate = status?.update_available ?? false;
+    const sameVersionDifferentCommit = Boolean(
+        isHealthy &&
+            status?.local?.version &&
+            status?.remote?.version &&
+            status.local.version === status.remote.version &&
+            status.local.commit !== status.remote.commit,
+    );
+    const remoteBadgeLabel = !isHealthy
+        ? 'Statusfehler'
+        : hasReleasableUpdate
+          ? status?.can_update
+              ? 'Installierbar'
+              : 'Prüfung nötig'
+          : sameVersionDifferentCommit
+            ? 'Kein Release'
+            : 'Aktuell';
+    const localBadgeLabel = !isHealthy
+        ? 'Statusfehler'
+        : hasReleasableUpdate
+          ? 'Update verfügbar'
+          : 'Aktuell';
 
     return (
         <div className="space-y-6">
@@ -199,16 +222,12 @@ export default function UpdateManagementPanel() {
                                             variant={
                                                 !isHealthy
                                                     ? 'outline'
-                                                    : status.update_available
+                                                    : hasReleasableUpdate
                                                     ? 'default'
                                                     : 'secondary'
                                             }
                                         >
-                                            {!isHealthy
-                                                ? 'Statusfehler'
-                                                : status.update_available
-                                                ? 'Update verfügbar'
-                                                : 'Aktuell'}
+                                            {localBadgeLabel}
                                         </Badge>
                                     </div>
                                     <p className="mt-3 text-xs text-muted-foreground">
@@ -231,16 +250,13 @@ export default function UpdateManagementPanel() {
                                             variant={
                                                 !isHealthy
                                                     ? 'outline'
-                                                    : status.can_update
+                                                    : hasReleasableUpdate &&
+                                                      status.can_update
                                                     ? 'secondary'
                                                     : 'outline'
                                             }
                                         >
-                                            {!isHealthy
-                                                ? 'Statusfehler'
-                                                : status.can_update
-                                                ? 'Installierbar'
-                                                : 'Prüfung nötig'}
+                                            {remoteBadgeLabel}
                                         </Badge>
                                     </div>
                                     <p className="mt-3 text-xs text-muted-foreground">
@@ -337,7 +353,26 @@ export default function UpdateManagementPanel() {
                                 </div>
                             )}
 
-                            {status.tracked_changes.length > 0 && (
+                            {sameVersionDifferentCommit && (
+                                <div className="rounded-2xl border border-sky-300/70 bg-sky-50 p-4 text-sm text-sky-950 dark:border-sky-900 dark:bg-sky-950/20 dark:text-sky-100">
+                                    <div className="mb-2 flex items-center gap-2 font-medium">
+                                        <Info className="size-4" />
+                                        Kein neues Release erkannt
+                                    </div>
+                                    <p>
+                                        Der Remote-Commit unterscheidet sich,
+                                        aber <code>version.json</code> ist
+                                        weiterhin auf {status?.local?.version}.
+                                        Das Update-System reagiert absichtlich
+                                        nur auf neue Versionsnummern. Erhöhe für
+                                        ein neues Release die Version und pushe
+                                        dann erneut.
+                                    </p>
+                                </div>
+                            )}
+
+                            {hasReleasableUpdate &&
+                                status.tracked_changes.length > 0 && (
                                 <div className="rounded-2xl border border-amber-300/70 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
                                     <div className="mb-2 flex items-center gap-2 font-medium">
                                         <TriangleAlert className="size-4" />
@@ -351,7 +386,8 @@ export default function UpdateManagementPanel() {
                                 </div>
                             )}
 
-                            {status.blocked_files.length > 0 && (
+                            {hasReleasableUpdate &&
+                                status.blocked_files.length > 0 && (
                                 <div className="rounded-2xl border border-amber-300/70 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
                                     <div className="mb-2 flex items-center gap-2 font-medium">
                                         <ShieldCheck className="size-4" />
@@ -365,7 +401,8 @@ export default function UpdateManagementPanel() {
                                 </div>
                             )}
 
-                            {status.changed_files.length > 0 && (
+                            {hasReleasableUpdate &&
+                                status.changed_files.length > 0 && (
                                 <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
                                     <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
                                         <TerminalSquare className="size-4" />
