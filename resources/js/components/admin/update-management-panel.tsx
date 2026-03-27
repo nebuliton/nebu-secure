@@ -90,7 +90,10 @@ export default function UpdateManagementPanel() {
             }
 
             if (result.status === 'succeeded') {
-                toast.success(result.message);
+                toast.success(`${result.message} Die Seite wird neu geladen.`);
+                window.setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
                 toast.error(result.message);
             }
