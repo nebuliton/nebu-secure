@@ -2,20 +2,21 @@ import { Head } from '@inertiajs/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     Copy,
+    CreditCard,
     Eye,
     Heart,
     KeyRound,
     Link2,
     LockKeyhole,
+    Package,
     Search,
     Server,
     StickyNote,
-    CreditCard,
     Terminal,
-    Package,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ExternalUrlLink } from '@/components/external-url-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { ExternalUrlLink } from '@/components/external-url-link';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { apiRequest } from '@/lib/api';
@@ -112,7 +112,7 @@ export default function MyVaultPage() {
                 `/api/vault-items/${itemId}/toggle-favorite`,
                 'POST',
             ),
-        onSuccess: (_data, itemId) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-vault-items'] });
             toast.success('Favorit aktualisiert');
         },
